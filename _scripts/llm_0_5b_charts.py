@@ -136,7 +136,7 @@ def accuracy_vs_tokens():
     bench = {r["label"]: r for r in read("benchmarks.csv")}
     acc = lambda k: float(bench[k]["avg_acc"])
     ours = [(0.262e9, acc("step500")), (0.524e9, acc("step1000")), (0.786e9, acc("step1500")),
-            (1.049e9, acc("final@2000")), (2.097e9, acc("final@4000"))]
+            (1.049e9, acc("final@2000")), (2.097e9, acc("final@4000")), (4.194e9, acc("final@8000"))]
     pythia = [(1.07e9, acc("pythia-410m@1.07B-tok")), (2.1e9, acc("pythia-410m@2.1B-tok")), (300e9, acc("pythia-410m@300B-tok"))]
     others = [("Pythia-1B", 1.07e9, acc("pythia-1b@1.07B-tok"), 8, 16, "start"),
               ("SmolLM2-360M", 4e12, acc("SmolLM2-360M@4T-tok"), -10, -6, "end"),
@@ -166,15 +166,16 @@ def accuracy_vs_tokens():
         o.append(f'<text class="note" x="{n(X(t) + dx)}" y="{n(Y(v) + dy)}" text-anchor="{anchor}">{name}</text>')
 
     t, v = ours[-1]
-    o.append(f'<text class="value" x="{n(X(t) + 10)}" y="{n(Y(v) - 8)}">Ours, 2.1B: {a3(v)}</text>')
+    o.append(f'<text class="value" x="{n(X(t) + 10)}" y="{n(Y(v) - 8)}">Ours, 4.2B: {a3(v)}</text>')
     t, v = pythia[1]
     o.append(f'<text class="value value-2" x="{n(X(t) + 10)}" y="{n(Y(v) + 16)}">Pythia-410M, 2.1B: {a3(v)}</text>')
     t, v = pythia[2]
     o.append(f'<text class="value value-2" x="{n(X(t))}" y="{n(Y(v) - 12)}" text-anchor="middle">Pythia-410M, 300B: {a3(v)}</text>')
 
-    desc = ("Average accuracy against training tokens on a log scale. Our model climbs from 0.328 at 262M tokens to 0.433 at 2.1B. "
-            "Pythia-410M scores 0.348 at 2.1B tokens and 0.493 at 300B. Pythia-1B scores 0.297 at 1.07B. "
-            "SmolLM2-360M scores 0.587 at 4T tokens and Qwen2.5-0.5B 0.565 at 18T.")
+    desc = (f"Average accuracy against training tokens on a log scale. Our model climbs from {a3(ours[0][1])} at 262M tokens "
+            f"to {a3(ours[-1][1])} at 4.2B. Pythia-410M scores {a3(acc('pythia-410m@2.1B-tok'))} at 2.1B tokens and "
+            f"{a3(acc('pythia-410m@300B-tok'))} at 300B. Pythia-1B scores {a3(acc('pythia-1b@1.07B-tok'))} at 1.07B. "
+            f"SmolLM2-360M scores {a3(acc('SmolLM2-360M@4T-tok'))} at 4T tokens and Qwen2.5-0.5B {a3(acc('Qwen2.5-0.5B@18T-tok'))} at 18T.")
     (OUT / "llm-0.5b-accuracy.svg").write_text(svg(W, H, "Accuracy against training tokens", desc, o))
 
 
@@ -185,10 +186,11 @@ TASKS = (("lambada_openai", "LAMBADA", None), ("sciq", "SciQ", 0.25), ("arc_easy
 
 def per_task():
     bench = {r["label"]: r for r in read("benchmarks.csv")}
-    ckpts = (("step500", 0.262), ("step1000", 0.524), ("step1500", 0.786), ("final@2000", 1.049), ("final@4000", 2.097))
+    ckpts = (("step500", 0.262), ("step1000", 0.524), ("step1500", 0.786), ("final@2000", 1.049),
+             ("final@4000", 2.097), ("final@8000", 4.194))
     pythia = bench["pythia-410m@300B-tok"]
     W, H, L, R, T, B = 220, 150, 30, 10, 10, 24
-    X = Scale(0, 2.2, L, W - R)
+    X = Scale(0, 4.3, L, W - R)
     Y = Scale(0, 0.8, H - B, T)
     items = []
     for key, name, chance in TASKS:
@@ -197,7 +199,7 @@ def per_task():
         for t in (0, 0.2, 0.4, 0.6, 0.8):
             o.append(f'<line class="grid" x1="{L}" x2="{W - R}" y1="{n(Y(t))}" y2="{n(Y(t))}"/>')
             o.append(f'<text class="tick tick-sm" x="{L - 5}" y="{n(Y(t) + 3.5)}" text-anchor="end">{t:.1f}</text>')
-        for t in (1, 2):  # no "0B" label: it would collide with the y-axis "0.0"
+        for t in (1, 2, 3, 4):  # no "0B" label: it would collide with the y-axis "0.0"
             o.append(f'<text class="tick tick-sm" x="{n(X(t))}" y="{H - B + 14}" text-anchor="middle">{t}B</text>')
         if chance is not None:
             o.append(f'<line class="chance" x1="{L}" x2="{W - R}" y1="{n(Y(chance))}" y2="{n(Y(chance))}"><title>Chance: {chance:.2f}</title></line>')
@@ -207,7 +209,7 @@ def per_task():
         for t, v in pts:
             o.append(f'<circle class="dot dot-sm" cx="{n(X(t))}" cy="{n(Y(v))}" r="3"><title>{name}, {t:.2f}B tokens: {a3(v)}</title></circle>')
         chance_txt = f", against chance at {chance:.2f}" if chance is not None else ""
-        desc = f"{name} accuracy rises from {a3(pts[0][1])} at 262M tokens to {a3(pts[-1][1])} at 2.1B{chance_txt}. Fully trained Pythia-410M scores {a3(pv)}."
+        desc = f"{name} accuracy rises from {a3(pts[0][1])} at 262M tokens to {a3(pts[-1][1])} at 4.2B{chance_txt}. Fully trained Pythia-410M scores {a3(pv)}."
         items.append(f'<li>\n<h3>{name} <span class="panel-value">{a3(pts[-1][1])}</span></h3>\n'
                      + svg(W, H, f"{name} accuracy", desc, o, cls="chart chart-small") + "</li>")
     # The final value sits in each panel's heading, clear of the reference lines.

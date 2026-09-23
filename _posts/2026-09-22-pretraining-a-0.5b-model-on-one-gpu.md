@@ -2,10 +2,10 @@
 date: 2026-09-22 12:00:00 +0000
 title: Pretraining a 0.5B model on one rented GPU
 authors: [jp]
-description: A 489M-parameter model trained from scratch on 2.1B tokens for about $8 so far, and what the numbers say.
+description: A 489M-parameter model trained from scratch on 4.2B tokens for $13.70, what it scores, and two things that did not work.
 ---
 
-We trained a 489M-parameter Llama-style model from scratch on a single rented RTX 5090. Two training phases are done, 2.1 billion tokens in all, and a third is running. This post covers what we built, how it scores, and one mistake worth avoiding.
+We trained a 489M-parameter Llama-style model from scratch on a single rented RTX 5090. The run is finished: three phases, 4.19 billion tokens, $13.70 of GPU time. This post covers what we built, how it scores, and two things we tried that did not work.
 
 ## The setup
 
@@ -38,18 +38,19 @@ Batch
 
 The training data is 2.03B tokens of [FineWeb-Edu](https://huggingface.co/datasets/HuggingFaceFW/fineweb-edu), with 50M held out for validation. The GPU was a 32 GB RTX 5090 rented on Vast.ai at $0.479 an hour. It trained at 48,000 tokens a second, about 85% of the card's theoretical peak.
 
-## Results so far
+## Results
 
-| | Phase 1 | Phase 2 |
-|---|--:|--:|
-| Training tokens | 1.05B | 2.10B |
-| Validation loss | 3.323 | 3.139 |
-| Zero-shot average, 9 tasks | 0.412 | 0.433 |
-| Wall clock | 6.4 h | 6.4 h |
+| | Phase 1 | Phase 2 | Phase 3 |
+|---|--:|--:|--:|
+| Training tokens | 1.05B | 2.10B | 4.19B |
+| Validation loss | 3.323 | 3.139 | 2.998 |
+| Zero-shot average, 9 tasks | 0.412 | 0.433 | 0.445 |
+| MMLU, 5-shot | | 0.254 | 0.272 |
+| Wall clock | 6.4 h | 6.4 h | 12.2 h |
 
-Doubling the tokens lowered validation loss by 0.18 and raised average accuracy by 2 points. Neither curve has flattened yet. At 2.1B tokens the model has seen about 4 tokens per parameter, a fifth of the Chinchilla-optimal ratio, so tokens are still the main thing holding it back.
+Each doubling of the tokens paid, and each paid a little less than the one before. The first took validation loss down 0.18 and average accuracy up 2 points; the second, 0.14 and 1.2 points. Neither curve has bent toward a floor. At 4.2B tokens the model has seen about 8.5 tokens per parameter, still under half the Chinchilla-optimal ratio. Tokens were the limit from start to finish. We stopped because the budget ran out, not because the model stopped learning.
 
-Training was stable throughout: across 4,000 steps there were no loss spikes and no non-finite gradients, and gradient clipping stopped triggering after step 540.
+Training was stable throughout: across all 8,000 steps there were no loss spikes and no non-finite gradients, and gradient clipping stopped triggering after step 540.
 
 ## Against public models
 
@@ -75,17 +76,17 @@ We ran every model through the same [lm-evaluation-harness](https://github.com/E
 | SmolLM2-360M | 4T | 0.587 |
 | Qwen2.5-0.5B | 18T | 0.565 |
 | Pythia-410M | 300B | 0.493 |
-| **Ours** | **2.1B** | **0.433** |
+| **Ours** | **4.19B** | **0.445** |
 | Pythia-410M | 2.1B | 0.348 |
 | Pythia-1B | 1.07B | 0.298 |
 
 </details>
 
-At the same 2.1B tokens, we score 8.5 points above Pythia-410M. We're 6 points behind the fully trained Pythia-410M, which saw 143 times as much data.
+At a matched 2.1B tokens, we scored 8.5 points above Pythia-410M. Finishing at 4.19B puts us 9.7 points above that checkpoint and 4.8 points behind the fully trained Pythia-410M, which saw 72 times as much data.
 
 SmolLM2-360M beats Qwen2.5-0.5B with fewer parameters and less than a quarter of the tokens. That gap comes from how its training data was chosen and mixed. We haven't worked on data selection at all yet, so it's the most promising next step once tokens stop being the bottleneck.
 
-On MMLU (5-shot) the model scores 0.251, which is chance for a four-way multiple choice. It hasn't learned that kind of knowledge yet, so we leave MMLU out of the average.
+On MMLU (5-shot) the model finished at 0.272, up from 0.254 at half the tokens. Chance is 0.25 on a four-way multiple choice, so this is the first sign of that kind of knowledge appearing, and not much more than a sign: social sciences carries it at 0.320 while humanities is still at chance. We leave MMLU out of the average.
 
 ## Restarting the learning-rate schedule has a cost
 
@@ -95,12 +96,14 @@ Each phase used a cosine schedule: warm the learning rate up, then decay it to a
 <div class="chart-scroll">
 {% include charts/llm-0.5b-val-loss.svg %}
 </div>
-<figcaption>Validation loss from 0.5B tokens on, with the learning rate underneath on the same axis. The shaded area is where phase 2 sits above phase 1's final loss. Phase 3 is still running; the dashed segment is its first 100 steps. Hover a point to see its exact value; on a phone, scroll the chart sideways.</figcaption>
+<figcaption>Validation loss from 0.5B tokens on, with the learning rate underneath on the same axis. The shaded areas are where each phase sits above the previous phase's final loss. Hover a point to see its exact value; on a phone, scroll the chart sideways.</figcaption>
 </figure>
 
-Raising the learning rate on a model that had just been annealed undid part of that annealing. Validation loss rose from 3.323 to 3.383 and took about 520 steps to get back below 3.323, over a quarter of phase 2. The shaded area in the chart is that cost. Phase 3 shows the same jump: 3.139 to 3.183 in its first 100 steps.
+Raising the learning rate on a model that had just been annealed undid part of that annealing. Validation loss rose from 3.323 to 3.383 and took 600 steps to get back below 3.323, about a third of phase 2. The shaded areas in the chart are that cost.
 
-Phase 2 still finished well ahead, so the restart was worth doing. But a warmup-stable-decay schedule avoids the cost entirely: hold the learning rate constant and decay it only at the very end. It's the better choice whenever the total training budget isn't fixed in advance, which for us it usually isn't.
+Phase 3 repeated it and showed what governs the size of the bill. It rose from 3.139 to 3.193, then needed 1,100 steps to recover, nearly twice phase 2's 600. The restart itself wasn't worse; phase 3's cosine simply runs over 4,000 steps instead of 2,000, so it holds the learning rate near its peak for twice as long. The cost tracks how long the schedule stays hot, not the act of restarting.
+
+Both phases finished well ahead, so both restarts were worth doing. But together they spent 1,700 of the run's 8,000 steps, 21% of the budget, re-earning ground already taken. A warmup-stable-decay schedule avoids this entirely: hold the learning rate constant and decay it only at the very end. It's the better choice whenever the total training budget isn't fixed in advance, which for us it usually isn't.
 
 ## What moved and what didn't
 
@@ -111,24 +114,34 @@ Phase 2 still finished well ahead, so the restart was worth doing. But a warmup-
 <li><span class="legend-key k-chance"></span>Chance</li>
 </ul>
 {% include charts/llm-0.5b-tasks.html %}
-<figcaption>Accuracy on each task against training tokens, all on the same 0 to 0.8 scale. The number beside each name is the score at 2.1B tokens. LAMBADA asks for a free-text word, so it has no chance line.</figcaption>
+<figcaption>Accuracy on each task against training tokens, all on the same 0 to 0.8 scale. The number beside each name is the final score at 4.19B tokens. LAMBADA asks for a free-text word, so it has no chance line.</figcaption>
 </figure>
 
 <details markdown="1">
 <summary>Show the numbers</summary>
 
-| Task | 262M tokens | 524M | 786M | 1.05B | 2.10B |
-|---|--:|--:|--:|--:|--:|
-| LAMBADA | 0.021 | 0.107 | 0.141 | 0.151 | 0.212 |
-| SciQ | 0.397 | 0.573 | 0.580 | 0.610 | 0.628 |
-| ARC-Easy | 0.333 | 0.387 | 0.405 | 0.415 | 0.447 |
-| PIQA | 0.545 | 0.573 | 0.589 | 0.594 | 0.614 |
-| HellaSwag | 0.260 | 0.271 | 0.277 | 0.282 | 0.298 |
-| ARC-Challenge | 0.232 | 0.224 | 0.231 | 0.233 | 0.249 |
+| Task | 262M tokens | 524M | 786M | 1.05B | 2.10B | 4.19B |
+|---|--:|--:|--:|--:|--:|--:|
+| LAMBADA | 0.021 | 0.107 | 0.141 | 0.151 | 0.212 | 0.230 |
+| SciQ | 0.397 | 0.573 | 0.580 | 0.610 | 0.628 | 0.660 |
+| ARC-Easy | 0.332 | 0.387 | 0.404 | 0.415 | 0.447 | 0.458 |
+| PIQA | 0.545 | 0.573 | 0.589 | 0.594 | 0.614 | 0.628 |
+| HellaSwag | 0.260 | 0.270 | 0.277 | 0.282 | 0.298 | 0.326 |
+| ARC-Challenge | 0.232 | 0.224 | 0.231 | 0.233 | 0.249 | 0.265 |
 
 </details>
 
-LAMBADA, which asks the model to predict the last word of a passage, rose tenfold, making it the most useful single sign of progress. HellaSwag and ARC-Challenge barely moved and sit near chance, and Pythia's checkpoints at the same token counts do the same. At this scale those two tell you little.
+LAMBADA, which asks the model to predict the last word of a passage, rose elevenfold from 0.021 to 0.230, making it the most useful single sign of progress. SciQ nearly doubled. HellaSwag sat nearly still for two phases and then finally began to move in phase 3, from 0.298 to 0.326.
+
+ARC-Challenge ended at 0.265 and WinoGrande at 0.502, both at or near chance after the whole run, and Pythia's checkpoints at the same token counts behave the same way. At this scale those two cost evaluation time without informing a single decision. We'd drop them from the tracking suite and watch validation perplexity and LAMBADA instead.
+
+## Averaging the weights didn't help
+
+Phase 3 also kept an exponential moving average of the weights, on the usual reasoning that averaging away the noise the last steps leave in each parameter is worth a few tenths of a point. It wasn't. The averaged weights scored 0.443 against the final checkpoint's 0.445, and were slightly worse on validation perplexity too, 42.5 against 42.1. That's within noise, but it is certainly not a gain.
+
+The reason makes sense in hindsight. Averaging helps when training ends while the learning rate is still high and the weights are still being jostled around. This run ends at 1e-5 after a full cosine decay, so the last thousand steps are already taking tiny, quiet steps. The decay had done the averaging already. The two techniques are substitutes, not complements.
+
+So: if you can afford to decay the learning rate properly, do that and skip the averaging. Keep it for runs that end while the rate is still high, which is what happens with a constant-rate schedule, an early stop, or a budget that runs out mid-decay. Finding this out cost one gigabyte of disk and no measurable training time, which is a fair price for knowing.
 
 ## Training health
 
@@ -141,7 +154,7 @@ We also logged per-layer gradient norms, activation sizes, and prediction entrop
 <figcaption>Gradient norm for each of the 24 layers, every 100 steps, before clipping. Stronger color means a larger gradient. Hover a column to see its values.</figcaption>
 </figure>
 
-The first layer carries the largest gradients throughout, four to six times those of the early-middle layers, and the second half of the network runs higher than the first. All 24 layers shrink together through phase 1, and each learning-rate restart shows up as a faint band at steps 2000 and 4000. No layer drifts away from the rest. A layer whose gradients grew or collapsed on its own would be the first sign of an unstable run.
+The first layer carries the largest gradients throughout, four to six times those of the early-middle layers, and the second half of the network runs higher than the first. All 24 layers shrink together, and each learning-rate restart shows up as a faint band at steps 2000 and 4000. No layer ever drifted away from the rest across the whole run. A layer whose gradients grew or collapsed on its own would be the first sign of an unstable run, and nothing here ever needed us to intervene.
 
 ## Cost
 
@@ -150,11 +163,20 @@ The first layer carries the largest gradients throughout, four to six times thos
 | Tokenizer and corpus preparation | 0.65 | $0.32 |
 | Phase 1 | 6.4 | $3.08 |
 | Phase 2 | 6.4 | $3.08 |
-| Benchmarks, including public baselines | 2.6 | $1.24 |
-| **Total so far** | **16.1** | **$7.72** |
+| Phase 3 | 12.2 | $5.83 |
+| Benchmarks, including public baselines | 2.9 | $1.39 |
+| **Total** | **28.6** | **$13.70** |
 
-Phase 3 should add about 12 hours and $5.75.
+## What we'd do next
 
-## What's next
+The run is done, and it never hit a wall we could fix with engineering. Ranked by what would actually pay:
 
-Phase 3 runs to 4.2B tokens, a second pass over the corpus. It also keeps a moving average of the weights, so we can measure whether averaging helps at this scale. After that, the plan is to change the data mix (adding code and reference text, aimed at the tasks that are currently flat) and to switch to a warmup-stable-decay schedule for any run whose length isn't fixed in advance.
+**Change the data mix, don't just add more of it.** The cheap token gains are largely spent, and the corpus is the binding constraint now. The benchmarks that stayed flat are flat because FineWeb-Edu contains none of what they test: no code, little reference text, nothing requiring multi-step reasoning. SmolLM2-360M beating Qwen2.5-0.5B on a quarter of the tokens is the evidence that mixture outweighs volume from here.
+
+**If you do add tokens, use one warmup-stable-decay schedule.** Another doubling would still pay, since the curve is straight to the end. Running it as a single schedule recovers the fifth of the budget our two restarts cost.
+
+**Skip the weight averaging if you can decay properly**, per the measurement above.
+
+**Drop ARC-Challenge and WinoGrande from the tracking suite** at this scale. Both sat at chance for the whole run.
+
+What we wouldn't bother with at this budget: architecture changes, a different optimizer, or a hyperparameter sweep. Nothing in the diagnostics ever suggested the model was the limiting factor. No instability, no dead layers, no gradient pathology, 85% of the card's peak throughput from the first step to the last. It was the data all along.
