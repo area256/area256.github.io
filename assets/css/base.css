@@ -42,6 +42,7 @@
   --accent: #3547a8;
   --code-bg: #f0f1ef;
   --chart-line: #3547a8;
+  --chart-2: #008a6e;
 
   --font-text: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
   --font-code: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
@@ -66,6 +67,7 @@
     --accent: #93a4f4;
     --code-bg: #1d2022;
     --chart-line: #7389e8;
+    --chart-2: #2fa487;
   }
 }
 
@@ -78,6 +80,7 @@
   --accent: #93a4f4;
   --code-bg: #1d2022;
   --chart-line: #7389e8;
+  --chart-2: #2fa487;
 }
 
 /* ---- Base ---------------------------------------------------------------- */
@@ -460,6 +463,120 @@ pre code {
 .chart .debt { fill: color-mix(in srgb, var(--chart-line) 18%, transparent); }
 .chart .ref { stroke: var(--chart-line); stroke-width: 1; stroke-dasharray: 2 3; }
 .chart .leader { stroke: var(--muted); stroke-width: 1; }
+.chart .line-thin { stroke-width: 1.5; }
+.chart .line-2 { stroke: var(--chart-2); }
+.chart .line-gap { stroke-dasharray: 1 4; }
+.chart .dot-2 { fill: var(--chart-2); }
+.chart .dot-other { fill: var(--muted); }
+.chart .value.value-2 { font-weight: 400; }
+.chart .chance { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.chart .target { stroke: var(--chart-2); stroke-width: 1.5; }
+.chart .hit-col { fill: transparent; }
+.chart .hit-col:hover { fill: color-mix(in srgb, var(--fg) 12%, transparent); }
+
+/* Gradient-norm heatmap: one hue, from near the page color to full ink. */
+.chart .heat-0 { fill: color-mix(in oklab, var(--chart-line) 8%, var(--bg)); }
+.chart .heat-1 { fill: color-mix(in oklab, var(--chart-line) 22%, var(--bg)); }
+.chart .heat-2 { fill: color-mix(in oklab, var(--chart-line) 36%, var(--bg)); }
+.chart .heat-3 { fill: color-mix(in oklab, var(--chart-line) 52%, var(--bg)); }
+.chart .heat-4 { fill: color-mix(in oklab, var(--chart-line) 68%, var(--bg)); }
+.chart .heat-5 { fill: color-mix(in oklab, var(--chart-line) 84%, var(--bg)); }
+.chart .heat-6 { fill: var(--chart-line); }
+
+/* Small multiples: one chart per benchmark, same scales. */
+.small-multiples {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem 1.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.prose .small-multiples li {
+  margin: 0;
+  text-align: left;
+}
+
+.small-multiples h3 {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0 0 0.25rem;
+  padding-right: 0.6rem;
+  font-size: var(--text-small);
+}
+
+.panel-value {
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.chart-small .tick-sm { font-size: 10px; }
+
+@media (max-width: 600px) {
+  .small-multiples {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem 1rem;
+  }
+
+  .small-multiples h3 {
+    padding-right: 0;
+  }
+
+  .chart-small .tick-sm { font-size: 14px; }
+}
+
+/* Legend: a short sample of each mark, then its name. */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-small);
+  color: var(--muted);
+}
+
+.prose .legend li {
+  margin: 0;
+  text-align: left;
+}
+
+.legend-key {
+  display: inline-block;
+  width: 1.25rem;
+  height: 0;
+  margin-right: 0.4rem;
+  vertical-align: middle;
+  border-top: 2px solid var(--chart-line);
+}
+
+.legend-key.k-2 { border-top-color: var(--chart-2); }
+.legend-key.k-other { width: 0.5rem; height: 0.5rem; border: 0; border-radius: 50%; background: var(--muted); }
+.legend-key.k-chance { border-top: 1px dashed var(--muted); }
+.legend-key.k-target { border-top: 1.5px solid var(--chart-2); }
+
+/* The numbers behind a chart, one click away. */
+.prose details {
+  margin: 0.75rem 0 1.5rem;
+  font-size: var(--text-small);
+}
+
+.prose summary {
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.prose summary:hover {
+  color: var(--fg);
+}
+
+.prose details table {
+  margin-top: 0.5rem;
+}
 .chart .value { fill: var(--fg); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
 
 /* ---- Post ---------------------------------------------------------------- */

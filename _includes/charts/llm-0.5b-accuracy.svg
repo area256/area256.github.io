@@ -1,0 +1,48 @@
+<svg class="chart" viewBox="0 0 760 330" role="img" aria-labelledby="accuracy-against-trainin-t accuracy-against-trainin-d">
+<title id="accuracy-against-trainin-t">Accuracy against training tokens</title>
+<desc id="accuracy-against-trainin-d">Average accuracy against training tokens on a log scale. Our model climbs from 0.328 at 262M tokens to 0.433 at 2.1B. Pythia-410M scores 0.348 at 2.1B tokens and 0.493 at 300B. Pythia-1B scores 0.297 at 1.07B. SmolLM2-360M scores 0.587 at 4T tokens and Qwen2.5-0.5B 0.565 at 18T.</desc>
+<text class="axis-label" x="44" y="16">average zero-shot accuracy, 9 tasks</text>
+<line class="grid" x1="44" x2="730" y1="286.0" y2="286.0"/>
+<text class="tick" x="36" y="290.0" text-anchor="end">0.25</text>
+<line class="grid" x1="44" x2="730" y1="250.0" y2="250.0"/>
+<text class="tick" x="36" y="254.0" text-anchor="end">0.30</text>
+<line class="grid" x1="44" x2="730" y1="214.0" y2="214.0"/>
+<text class="tick" x="36" y="218.0" text-anchor="end">0.35</text>
+<line class="grid" x1="44" x2="730" y1="178.0" y2="178.0"/>
+<text class="tick" x="36" y="182.0" text-anchor="end">0.40</text>
+<line class="grid" x1="44" x2="730" y1="142.0" y2="142.0"/>
+<text class="tick" x="36" y="146.0" text-anchor="end">0.45</text>
+<line class="grid" x1="44" x2="730" y1="106.0" y2="106.0"/>
+<text class="tick" x="36" y="110.0" text-anchor="end">0.50</text>
+<line class="grid" x1="44" x2="730" y1="70.0" y2="70.0"/>
+<text class="tick" x="36" y="74.0" text-anchor="end">0.55</text>
+<line class="grid" x1="44" x2="730" y1="34.0" y2="34.0"/>
+<text class="tick" x="36" y="38.0" text-anchor="end">0.60</text>
+<text class="tick" x="44.0" y="306" text-anchor="middle">100M</text>
+<text class="tick" x="169.2" y="306" text-anchor="middle">1B</text>
+<text class="tick" x="294.5" y="306" text-anchor="middle">10B</text>
+<text class="tick" x="419.7" y="306" text-anchor="middle">100B</text>
+<text class="tick" x="545.0" y="306" text-anchor="middle">1T</text>
+<text class="tick" x="670.2" y="306" text-anchor="middle">10T</text>
+<text class="axis-label" x="730" y="324" text-anchor="end">training tokens, log scale</text>
+<path class="line line-2" d="M172.9,250.7 L209.6,215.8"/>
+<path class="line line-2 line-gap" d="M209.6,215.8 L479.5,111.2"/>
+<path class="line" d="M96.4,229.8 L134.1,182.9 L156.2,175.0 L171.9,169.2 L209.5,154.5"/>
+<circle class="dot dot-2" cx="172.9" cy="250.7" r="4"><title>Pythia-410M, 1.07B tokens: 0.299</title></circle>
+<circle class="dot dot-2" cx="209.6" cy="215.8" r="4"><title>Pythia-410M, 2.1B tokens: 0.348</title></circle>
+<circle class="dot dot-2" cx="479.5" cy="111.2" r="4"><title>Pythia-410M, 300B tokens: 0.493</title></circle>
+<circle class="dot" cx="96.4" cy="229.8" r="4"><title>Our model, 0.26B tokens: 0.328</title></circle>
+<circle class="dot" cx="134.1" cy="182.9" r="4"><title>Our model, 0.52B tokens: 0.393</title></circle>
+<circle class="dot" cx="156.2" cy="175.0" r="4"><title>Our model, 0.79B tokens: 0.404</title></circle>
+<circle class="dot" cx="171.9" cy="169.2" r="4"><title>Our model, 1.05B tokens: 0.412</title></circle>
+<circle class="dot" cx="209.5" cy="154.5" r="4"><title>Our model, 2.10B tokens: 0.433</title></circle>
+<circle class="dot dot-other" cx="172.9" cy="251.8" r="4"><title>Pythia-1B, 1.07B tokens: 0.298</title></circle>
+<text class="note" x="180.9" y="267.8" text-anchor="start">Pythia-1B</text>
+<circle class="dot dot-other" cx="620.4" cy="43.6" r="4"><title>SmolLM2-360M, 4000B tokens: 0.587</title></circle>
+<text class="note" x="610.4" y="37.6" text-anchor="end">SmolLM2-360M</text>
+<circle class="dot dot-other" cx="702.2" cy="59.1" r="4"><title>Qwen2.5-0.5B, 18000B tokens: 0.565</title></circle>
+<text class="note" x="702.2" y="81.1" text-anchor="middle">Qwen2.5-0.5B</text>
+<text class="value" x="219.5" y="146.5">Ours, 2.1B: 0.433</text>
+<text class="value value-2" x="219.6" y="231.8">Pythia-410M, 2.1B: 0.348</text>
+<text class="value value-2" x="479.5" y="99.2" text-anchor="middle">Pythia-410M, 300B: 0.493</text>
+</svg>

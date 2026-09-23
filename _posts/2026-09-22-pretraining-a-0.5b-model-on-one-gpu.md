@@ -54,13 +54,31 @@ Training was stable throughout: across 4,000 steps there were no loss spikes and
 
 We ran every model through the same [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness) tasks on the same machine. Before evaluating our checkpoints, we converted them to the Hugging Face Llama format and confirmed the converted model gives the same outputs as the original.
 
+<figure class="wide">
+<ul class="legend">
+<li><span class="legend-key"></span>Our model, at each checkpoint</li>
+<li><span class="legend-key k-2"></span>Pythia-410M</li>
+<li><span class="legend-key k-other"></span>Other public models</li>
+</ul>
+<div class="chart-scroll">
+{% include charts/llm-0.5b-accuracy.svg %}
+</div>
+<figcaption>Average zero-shot accuracy on nine tasks against training tokens, on a log scale. Pythia-410M was only measured at the three points shown; the dotted line just joins them. At 1.07B tokens, Pythia-1B and Pythia-410M score almost the same (0.298 and 0.299), so their dots overlap.</figcaption>
+</figure>
+
+<details markdown="1">
+<summary>Show the numbers</summary>
+
 | Model | Training tokens | Zero-shot average |
 |---|--:|--:|
 | SmolLM2-360M | 4T | 0.587 |
 | Qwen2.5-0.5B | 18T | 0.565 |
 | Pythia-410M | 300B | 0.493 |
 | **Ours** | **2.1B** | **0.433** |
-| Pythia-410M, same token count | 2.1B | 0.348 |
+| Pythia-410M | 2.1B | 0.348 |
+| Pythia-1B | 1.07B | 0.298 |
+
+</details>
 
 At the same 2.1B tokens, we score 8.5 points above Pythia-410M. We're 6 points behind the fully trained Pythia-410M, which saw 143 times as much data.
 
@@ -76,7 +94,7 @@ Each phase used a cosine schedule: warm the learning rate up, then decay it to a
 <div class="chart-scroll">
 {% include charts/llm-0.5b-val-loss.svg %}
 </div>
-<figcaption>Validation loss from 0.5B tokens on. The shaded area is where phase 2 sits above phase 1's final loss. Phase 3 is still running; the dashed segment is its first 100 steps. Hover a point to see its exact value; on a phone, scroll the chart sideways.</figcaption>
+<figcaption>Validation loss from 0.5B tokens on, with the learning rate underneath on the same axis. The shaded area is where phase 2 sits above phase 1's final loss. Phase 3 is still running; the dashed segment is its first 100 steps. Hover a point to see its exact value; on a phone, scroll the chart sideways.</figcaption>
 </figure>
 
 Raising the learning rate on a model that had just been annealed undid part of that annealing. Validation loss rose from 3.323 to 3.383 and took about 520 steps to get back below 3.323, over a quarter of phase 2. The shaded area in the chart is that cost. Phase 3 shows the same jump: 3.139 to 3.183 in its first 100 steps.
@@ -85,18 +103,44 @@ Phase 2 still finished well ahead, so the restart was worth doing. But a warmup-
 
 ## What moved and what didn't
 
-| Task | 262M tokens | 1.05B | 2.10B |
-|---|--:|--:|--:|
-| LAMBADA | 0.021 | 0.151 | **0.212** |
-| SciQ | 0.397 | 0.610 | 0.628 |
-| ARC-Easy | 0.332 | 0.415 | 0.447 |
-| PIQA | 0.545 | 0.594 | 0.614 |
-| HellaSwag | 0.260 | 0.282 | 0.298 |
-| ARC-Challenge | 0.232 | 0.233 | 0.249 |
+<figure class="wide">
+<ul class="legend">
+<li><span class="legend-key"></span>Our model</li>
+<li><span class="legend-key k-target"></span>Pythia-410M after 300B tokens</li>
+<li><span class="legend-key k-chance"></span>Chance</li>
+</ul>
+{% include charts/llm-0.5b-tasks.html %}
+<figcaption>Accuracy on each task against training tokens, all on the same 0 to 0.8 scale. The number beside each name is the score at 2.1B tokens. LAMBADA asks for a free-text word, so it has no chance line.</figcaption>
+</figure>
+
+<details markdown="1">
+<summary>Show the numbers</summary>
+
+| Task | 262M tokens | 524M | 786M | 1.05B | 2.10B |
+|---|--:|--:|--:|--:|--:|
+| LAMBADA | 0.021 | 0.107 | 0.141 | 0.151 | 0.212 |
+| SciQ | 0.397 | 0.573 | 0.580 | 0.610 | 0.628 |
+| ARC-Easy | 0.333 | 0.387 | 0.405 | 0.415 | 0.447 |
+| PIQA | 0.545 | 0.573 | 0.589 | 0.594 | 0.614 |
+| HellaSwag | 0.260 | 0.271 | 0.277 | 0.282 | 0.298 |
+| ARC-Challenge | 0.232 | 0.224 | 0.231 | 0.233 | 0.249 |
+
+</details>
 
 LAMBADA, which asks the model to predict the last word of a passage, rose tenfold, making it the most useful single sign of progress. HellaSwag and ARC-Challenge barely moved and sit near chance, and Pythia's checkpoints at the same token counts do the same. At this scale those two tell you little.
 
+## Training health
+
 We also logged per-layer gradient norms, activation sizes, and prediction entropy throughout. None of them needed action this time, but each would have caught a problem long before it showed up in the loss curve.
+
+<figure class="wide">
+<div class="chart-scroll">
+{% include charts/llm-0.5b-grad-heatmap.svg %}
+</div>
+<figcaption>Gradient norm for each of the 24 layers, every 100 steps, before clipping. Stronger color means a larger gradient. Hover a column to see its values.</figcaption>
+</figure>
+
+The first layer carries the largest gradients throughout, four to six times those of the early-middle layers, and the second half of the network runs higher than the first. All 24 layers shrink together through phase 1, and each learning-rate restart shows up as a faint band at steps 2000 and 4000. No layer drifts away from the rest. A layer whose gradients grew or collapsed on its own would be the first sign of an unstable run.
 
 ## Cost
 
