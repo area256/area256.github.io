@@ -37,6 +37,7 @@
   --bg: #fbfbfa;
   --fg: #191b1e;
   --muted: #6a7075;
+  --faint: #868c91;
   --rule: #dfe3e1;
   --accent: #3547a8;
   --code-bg: #f0f1ef;
@@ -51,6 +52,7 @@
   --text-1: 1.235rem;        /* h2 */
   --text-2: 1.647rem;        /* h1 */
   --text-small: 0.882rem;    /* dates, footer, code */
+  --text-xsmall: 0.8rem;     /* author names */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -58,6 +60,7 @@
     --bg: #141617;
     --fg: #e8e9e9;
     --muted: #9aa0a4;
+    --faint: #7c8286;
     --rule: #2b3032;
     --accent: #93a4f4;
     --code-bg: #1d2022;
@@ -68,6 +71,7 @@
   --bg: #141617;
   --fg: #e8e9e9;
   --muted: #9aa0a4;
+  --faint: #7c8286;
   --rule: #2b3032;
   --accent: #93a4f4;
   --code-bg: #1d2022;
@@ -351,7 +355,8 @@ pre code {
 
 .post-authors {
   display: block;
-  color: var(--fg);
+  color: var(--faint);
+  font-size: var(--text-xsmall);
 }
 
 .post-authors a,
@@ -421,8 +426,8 @@ pre code {
 
 .post-by {
   display: block;
-  color: var(--muted);
-  font-size: var(--text-small);
+  color: var(--faint);
+  font-size: var(--text-xsmall);
 }
 
 .intro {
