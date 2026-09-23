@@ -50,7 +50,21 @@ The training data is 2.03B tokens of [FineWeb-Edu](https://huggingface.co/datase
 
 Each doubling of the tokens paid, and each paid a little less than the one before. The first took validation loss down 0.18 and average accuracy up 2 points; the second, 0.14 and 1.2 points. Neither curve has bent toward a floor. At 4.2B tokens the model has seen about 8.5 tokens per parameter, still under half the Chinchilla-optimal ratio. Tokens were the limit from start to finish. We stopped because the budget ran out, not because the model stopped learning.
 
+<figure class="wide">
+<div class="chart-scroll">
+{% include charts/llm-0.5b-loglog.svg %}
+</div>
+<figcaption>Validation loss against tokens with both axes logarithmic. A straight line here means the model is still in the regime where each doubling of data buys a fixed fraction of the remaining loss. Ours is still straight at the end, which is why we say the budget stopped the run rather than the model. Hover a point for its exact value.</figcaption>
+</figure>
+
 Training was stable throughout: across all 8,000 steps there were no loss spikes and no non-finite gradients, and gradient clipping stopped triggering after step 540.
+
+<figure class="wide">
+<div class="chart-scroll">
+{% include charts/llm-0.5b-throughput.svg %}
+</div>
+<figcaption>Throughput and model-FLOPs utilisation over the run. It held 48,000 tokens a second at 85% of the card's theoretical peak from the first step to the last. The dips are benchmark runs sharing the GPU with training, which is the price of measuring as you go.</figcaption>
+</figure>
 
 ## Against public models
 
@@ -155,6 +169,26 @@ We also logged per-layer gradient norms, activation sizes, and prediction entrop
 </figure>
 
 The first layer carries the largest gradients throughout, four to six times those of the early-middle layers, and the second half of the network runs higher than the first. All 24 layers shrink together, and each learning-rate restart shows up as a faint band at steps 2000 and 4000. No layer ever drifted away from the rest across the whole run. A layer whose gradients grew or collapsed on its own would be the first sign of an unstable run, and nothing here ever needed us to intervene.
+
+<figure class="wide">
+<div class="chart-scroll">
+{% include charts/llm-0.5b-resid-heatmap.svg %}
+</div>
+<figcaption>Size of the residual stream leaving each layer, on the same sampling. This one is banded by depth rather than by time, so the pattern to look for is different.</figcaption>
+</figure>
+
+The residual stream tells a different story: it's banded by depth, not by time. Each layer adds its output to a running sum that only gets normalised on the way into the next block, so the stream grows steadily from layer 0 at the bottom to layer 23 at the top. That gradient is the signature of a healthy pre-norm network. What you don't want is a single row suddenly brightening, which is what a layer heading for numerical trouble looks like well before the loss notices.
+
+<figure class="wide">
+<div class="chart-scroll">
+{% include charts/llm-0.5b-diagnostics.svg %}
+</div>
+<figcaption>Two more signals over the run. Top: mean prediction entropy, how uncertain the model is about its next token. Bottom: how large each optimizer update is relative to the weight it changes, for the embedding table and three attention projections, on a log scale.</figcaption>
+</figure>
+
+Prediction entropy drops steeply during warmup, from 7.44 nats to about 3.5 by the end of phase 1, and then stops falling. It spends phases 2 and 3 wandering around 3 nats, bouncing half a nat either way because we measure it on a single batch. That plateau is worth noticing: the model kept getting better at predicting the right token long after it stopped getting more *confident* on average. Loss and confidence are not the same thing, and only one of them was still improving.
+
+The update sizes shrink as the learning rate decays and step back up at each restart, which is the loss curve's story told from the optimizer's side. None of this needed action. That's rather the point of logging it: it's cheap, and the run where one of these goes wrong is the run where you want it already there.
 
 ## Cost
 

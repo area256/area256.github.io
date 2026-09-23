@@ -57,77 +57,98 @@ def path(points):
 
 # ---- 1. Validation loss with the learning rate underneath -------------------------
 def loss_and_lr():
+    """Validation loss over the whole run, with the learning rate underneath.
+
+    Each continuation restarts the cosine, which pushes the loss back above where the
+    previous phase finished. The shaded wedges are those debts; both are measured from
+    the data rather than written in, so the chart stays honest if the run is extended.
+    """
     val = [(int(r["step"]), int(r["phase"]), int(r["tokens"]) / 1e9, float(r["val_loss"]))
            for r in read("val_loss.csv") if int(r["step"]) >= 1000]
     lr = [(int(r["tokens"]) / 1e9, float(r["lr"]), int(r["step"])) for r in read("train_metrics.csv")]
-    lr = [p for p in lr if p[0] >= 0.5]
+    lr = [q for q in lr if q[0] >= 0.5]
+    phases = sorted({p[1] for p in val})
 
     W, L, R = 760, 44, 24
-    T1, H1 = 34, 262          # loss panel top and bottom
-    T2, H2 = 312, 392         # learning-rate panel top and bottom
+    T1, H1 = 34, 262
+    T2, H2 = 312, 392
     H = 436
-    X = Scale(0.5, 2.2, L, W - R)
-    Y = Scale(3.1, 3.6, H1, T1)
-    Ylr = Scale(0, 3e-4, H2, T2)
-
-    p1_end = next(p for p in val if p[0] == 2000)
-    ref = p1_end[3]
-    seg2 = [p1_end] + [p for p in val if p[1] == 2]
-    for a, b in zip(seg2[1:], seg2[2:]):
-        if a[3] >= ref > b[3]:
-            rec_step = a[0] + (a[3] - ref) / (a[3] - b[3]) * (b[0] - a[0])
-            break
-    rec_tok = rec_step * TOKENS_PER_STEP / 1e9
-    cost = round(rec_step - 2000, -1)
+    last_tok = val[-1][2]
+    lo = min(p[3] for p in val)
+    hi = max(p[3] for p in val)
+    X = Scale(0.5, last_tok * 1.03, L, W - R)
+    Y = Scale(math.floor(lo * 20) / 20, math.ceil(hi * 20) / 20, H1, T1)
+    Ylr = Scale(0, max(v for _, v, _ in lr) * 1.05, H2, T2)
 
     o = [f'<text class="axis-label" x="{L}" y="{T1 - 18}">validation loss</text>']
-    for t in (3.1, 3.2, 3.3, 3.4, 3.5, 3.6):
+    t = math.floor(lo * 10) / 10
+    while t <= hi + 0.05:
         o.append(f'<line class="grid" x1="{L}" x2="{W - R}" y1="{n(Y(t))}" y2="{n(Y(t))}"/>')
         o.append(f'<text class="tick" x="{L - 8}" y="{n(Y(t) + 4)}" text-anchor="end">{t:.1f}</text>')
+        t = round(t + 0.1, 2)
 
-    debt = [(X(p[2]), Y(p[3])) for p in seg2 if p[0] < rec_step] + [(X(rec_tok), Y(ref))]
-    o.append(f'<path class="debt" d="{path(debt)} Z"/>')
-    o.append(f'<line class="ref" x1="{n(X(p1_end[2]))}" x2="{n(X(rec_tok) + 40)}" y1="{n(Y(ref))}" y2="{n(Y(ref))}"/>')
-    cx = X((p1_end[2] + rec_tok) / 2)
-    o.append(f'<line class="leader" x1="{n(cx + 30)}" y1="{n(Y(3.37))}" x2="{n(cx + 58)}" y2="{n(Y(3.43))}"/>')
-    o.append(f'<text class="note-strong" x="{n(cx + 62)}" y="{n(Y(3.43) - 2)}">Restart cost: about {cost:.0f} steps</text>')
-    o.append(f'<text class="note" x="{n(cx + 62)}" y="{n(Y(3.43) + 14)}">to get back to {ref:.3f}</text>')
+    # one shaded wedge per restart: from the phase boundary until the loss is back under it
+    notes = []
+    for ph in phases[1:]:
+        prev = [p for p in val if p[1] == ph - 1][-1]
+        ref = prev[3]
+        seg = [prev] + [p for p in val if p[1] == ph]
+        # Recovery is the first evaluation back at or under the previous phase's final loss.
+        # Reporting the measured eval step, not an interpolated crossing, keeps this figure
+        # identical to the one quoted in the post and the written report.
+        rec = next((q for q in seg[1:] if q[3] <= ref), None)
+        if rec is None:
+            continue
+        debt = [(X(q[2]), Y(q[3])) for q in seg if q[0] < rec[0]] + [(X(rec[2]), Y(ref))]
+        o.append(f'<path class="debt" d="{path(debt)} Z"/>')
+        o.append(f'<line class="ref" x1="{n(X(prev[2]))}" x2="{n(X(rec[2]))}" y1="{n(Y(ref))}" y2="{n(Y(ref))}"/>')
+        notes.append((prev, ref, rec[2], rec[0] - prev[0]))
 
-    for tok, label in ((2000 * TOKENS_PER_STEP / 1e9, "phase 2 starts"), (4000 * TOKENS_PER_STEP / 1e9, "phase 3 starts")):
-        x = X(tok)
-        left = tok > 2
+    for prev, ref, rec_tok, cost in notes:
+        cx = X((prev[2] + rec_tok) / 2)
+        top = Y(ref) - 30
+        o.append(f'<line class="leader" x1="{n(cx)}" y1="{n(Y(ref) - 4)}" x2="{n(cx)}" y2="{n(top + 4)}"/>')
+        o.append(f'<text class="note-strong" x="{n(cx)}" y="{n(top)}" text-anchor="middle">{cost:.0f} steps to recover</text>')
+
+    for ph in phases[1:]:
+        tok = [p for p in val if p[1] == ph][0][2]
+        x = X(tok - TOKENS_PER_STEP * 100 / 1e9)
         o.append(f'<line class="boundary" x1="{n(x)}" x2="{n(x)}" y1="{T1}" y2="{H2}"/>')
-        o.append(f'<text class="note" x="{n(x - 6 if left else x + 6)}" y="{T1 + 12}" text-anchor="{"end" if left else "start"}">{label}</text>')
+        o.append(f'<text class="note" x="{n(x + 6)}" y="{T1 + 12}">phase {ph} starts</text>')
 
-    for ph in (1, 2, 3):
+    for ph in phases:
         seg = [p for p in val if p[1] == ph]
-        if ph > 1:
+        if ph > phases[0]:
             seg = [[p for p in val if p[1] == ph - 1][-1]] + seg
-        o.append(f'<path class="line{" line-live" if ph == 3 else ""}" d="{path([(X(p[2]), Y(p[3])) for p in seg])}"/>')
-    for s, ph, tok, v in val:
-        o.append(f'<circle class="hit" cx="{n(X(tok))}" cy="{n(Y(v))}" r="8"><title>Step {s}, {tok:.2f}B tokens: validation loss {v:.4f}</title></circle>')
-    for s, txt, dx, dy, anchor in ((2000, "3.323", -8, 18, "end"), (4000, "3.139", 8, 18, "start"), (4100, "3.183", 8, -10, "start")):
-        p = next(q for q in val if q[0] == s)
-        o.append(f'<circle class="dot" cx="{n(X(p[2]))}" cy="{n(Y(p[3]))}" r="4"/>')
-        o.append(f'<text class="value" x="{n(X(p[2]) + dx)}" y="{n(Y(p[3]) + dy)}" text-anchor="{anchor}">{txt}</text>')
+        o.append(f'<path class="line" d="{path([(X(p[2]), Y(p[3])) for p in seg])}"/>')
+    for s_, ph, tok, v in val:
+        o.append(f'<circle class="hit" cx="{n(X(tok))}" cy="{n(Y(v))}" r="8">'
+                 f'<title>Step {s_}, {tok:.2f}B tokens: validation loss {v:.4f}</title></circle>')
 
-    # learning-rate panel: same x scale, its own y scale
+    ends = [[p for p in val if p[1] == ph][-1] for ph in phases]
+    for i, p_ in enumerate(ends):
+        dy, anchor = (18, "end") if i < len(ends) - 1 else (-10, "end")
+        o.append(f'<circle class="dot" cx="{n(X(p_[2]))}" cy="{n(Y(p_[3]))}" r="4"/>')
+        o.append(f'<text class="value" x="{n(X(p_[2]) - 8)}" y="{n(Y(p_[3]) + dy)}" text-anchor="{anchor}">{p_[3]:.3f}</text>')
+
     o.append(f'<text class="axis-label" x="{L}" y="{T2 - 10}">learning rate</text>')
-    for t, lab in ((0, "0"), (1e-4, "1e-4"), (2e-4, "2e-4"), (3e-4, "3e-4")):
-        o.append(f'<line class="grid" x1="{L}" x2="{W - R}" y1="{n(Ylr(t))}" y2="{n(Ylr(t))}"/>')
-        o.append(f'<text class="tick" x="{L - 8}" y="{n(Ylr(t) + 4)}" text-anchor="end">{lab}</text>')
-    o.append(f'<path class="line line-thin" d="{path([(X(t), Ylr(v)) for t, v, _ in lr])}"/>')
-    for t, v, s in lr[::5]:
-        o.append(f'<circle class="hit" cx="{n(X(t))}" cy="{n(Ylr(v))}" r="6"><title>Step {s}, {t:.2f}B tokens: learning rate {v:.2e}</title></circle>')
+    for t_, lab in ((0, "0"), (1e-4, "1e-4"), (2e-4, "2e-4"), (3e-4, "3e-4")):
+        o.append(f'<line class="grid" x1="{L}" x2="{W - R}" y1="{n(Ylr(t_))}" y2="{n(Ylr(t_))}"/>')
+        o.append(f'<text class="tick" x="{L - 8}" y="{n(Ylr(t_) + 4)}" text-anchor="end">{lab}</text>')
+    o.append(f'<path class="line line-thin" d="{path([(X(t_), Ylr(v)) for t_, v, _ in lr])}"/>')
+    for t_, v, s_ in lr[::10]:
+        o.append(f'<circle class="hit" cx="{n(X(t_))}" cy="{n(Ylr(v))}" r="6">'
+                 f'<title>Step {s_}, {t_:.2f}B tokens: learning rate {v:.2e}</title></circle>')
 
-    for t in (0.5, 1.0, 1.5, 2.0):
-        o.append(f'<text class="tick" x="{n(X(t))}" y="{H2 + 20}" text-anchor="middle">{t:.1f}B</text>')
+    for t_ in (1, 2, 3, 4):
+        o.append(f'<text class="tick" x="{n(X(t_))}" y="{H2 + 20}" text-anchor="middle">{t_}B</text>')
     o.append(f'<text class="axis-label" x="{W - R}" y="{H - 6}" text-anchor="end">training tokens</text>')
 
-    desc = (f"Two panels sharing the training-token axis. Top: validation loss falls to {ref:.3f} at the end of phase 1, "
-            f"rises to 3.383 after the learning rate is raised again for phase 2, and takes about {cost:.0f} steps to get back; "
-            "phase 2 ends at 3.139 and phase 3 restarts again to 3.183. Bottom: the learning rate decays to 3e-5 in phase 1, "
-            "jumps back to 2e-4 at the start of phase 2, decays to 2e-5, and jumps to 1.5e-4 for phase 3.")
+    costs = ", ".join(f"{c:.0f}" for *_, c in notes)
+    desc = (f"Two panels sharing the training-token axis. Top: validation loss falls from "
+            f"{val[0][3]:.3f} to {ends[-1][3]:.3f} across {len(phases)} phases. Each restart pushes it back above "
+            f"the previous phase's final loss; the shaded wedges show those debts, costing {costs} steps. "
+            f"Bottom: the learning rate, decayed and restarted once per phase.")
     (OUT / "llm-0.5b-val-loss.svg").write_text(svg(W, H, "Validation loss and learning rate", desc, o))
 
 
@@ -217,12 +238,83 @@ def per_task():
     (OUT / "llm-0.5b-tasks.html").write_text(html)
 
 
+# ---- 3b. Validation loss against tokens, both axes logarithmic -------------------
+def loss_loglog():
+    """A straight line here means the run is still in the power-law regime."""
+    val = [(int(r["tokens"]) / 1e9, float(r["val_loss"])) for r in read("val_loss.csv")]
+    W, H, L, R, T, B = 760, 300, 52, 26, 34, 44
+    X = Scale(val[0][0] * 0.85, val[-1][0] * 1.15, L, W - R, log=True)
+    Y = Scale(2.9, 6.4, H - B, T, log=True)
+    o = [f'<text class="axis-label" x="{L}" y="{T - 18}">validation loss, log scale</text>']
+    for t in (3, 3.5, 4, 4.5, 5, 5.5, 6):
+        o.append(f'<line class="grid" x1="{L}" x2="{W - R}" y1="{n(Y(t))}" y2="{n(Y(t))}"/>')
+        o.append(f'<text class="tick" x="{L - 8}" y="{n(Y(t) + 4)}" text-anchor="end">{t:.1f}</text>')
+    for t, lab in ((0.05, "50M"), (0.1, "100M"), (0.5, "500M"), (1, "1B"), (2, "2B"), (4, "4B")):
+        if val[0][0] * 0.85 <= t <= val[-1][0] * 1.15:
+            o.append(f'<text class="tick" x="{n(X(t))}" y="{H - B + 20}" text-anchor="middle">{lab}</text>')
+    o.append(f'<text class="axis-label" x="{W - R}" y="{H - 6}" text-anchor="end">training tokens, log scale</text>')
+
+    # least squares on the last decade, to show the curve has not bent away from it
+    tail = val[-len(val) // 2:]
+    sx = sum(math.log10(t) for t, _ in tail); sy = sum(math.log10(v) for _, v in tail)
+    sxx = sum(math.log10(t) ** 2 for t, _ in tail); sxy = sum(math.log10(t) * math.log10(v) for t, v in tail)
+    k = len(tail)
+    slope = (k * sxy - sx * sy) / (k * sxx - sx * sx)
+    inter = (sy - slope * sx) / k
+    fit = [(tail[0][0], 10 ** (inter + slope * math.log10(tail[0][0]))),
+           (val[-1][0] * 1.12, 10 ** (inter + slope * math.log10(val[-1][0] * 1.12)))]
+    o.append(f'<path class="line line-gap line-2" d="{path([(X(t), Y(v)) for t, v in fit])}"/>')
+    o.append(f'<text class="note" x="{n(X(fit[1][0]))}" y="{n(Y(fit[1][1]) + 18)}" text-anchor="end">slope {slope:.3f}</text>')
+
+    o.append(f'<path class="line" d="{path([(X(t), Y(v)) for t, v in val])}"/>')
+    for t, v in val:
+        o.append(f'<circle class="hit" cx="{n(X(t))}" cy="{n(Y(v))}" r="7">'
+                 f'<title>{t:.2f}B tokens: validation loss {v:.4f}</title></circle>')
+    for t, v in (val[0], val[-1]):
+        o.append(f'<circle class="dot" cx="{n(X(t))}" cy="{n(Y(v))}" r="4"/>')
+    o.append(f'<text class="value" x="{n(X(val[-1][0]) - 10)}" y="{n(Y(val[-1][1]) - 10)}" text-anchor="end">{val[-1][1]:.3f}</text>')
+
+    desc = (f"Validation loss against training tokens, both axes logarithmic. The points fall on a near-straight "
+            f"line from {val[0][1]:.2f} at {val[0][0]:.2f}B tokens to {val[-1][1]:.3f} at {val[-1][0]:.2f}B, with a fitted "
+            f"slope of {slope:.3f} over the second half. A straight line means the run is still in the power-law "
+            "regime and has not begun to flatten.")
+    (OUT / "llm-0.5b-loglog.svg").write_text(svg(W, H, "Validation loss against tokens", desc, o))
+
+
+# ---- 3c. Throughput and model-FLOPs utilisation ---------------------------------
+def throughput():
+    rows = [(int(r["step"]), float(r["tokens_per_sec"]) / 1000, float(r["mfu"]) * 100) for r in read("train_metrics.csv")]
+    W, H, L, R, T, B = 760, 260, 52, 52, 34, 44
+    X = Scale(0, rows[-1][0], L, W - R)
+    Y = Scale(0, 55, H - B, T)
+    Y2 = Scale(0, 100, H - B, T)
+    o = [f'<text class="axis-label" x="{L}" y="{T - 18}">thousand tokens per second</text>']
+    for t in (0, 10, 20, 30, 40, 50):
+        o.append(f'<line class="grid" x1="{L}" x2="{W - R}" y1="{n(Y(t))}" y2="{n(Y(t))}"/>')
+        o.append(f'<text class="tick" x="{L - 8}" y="{n(Y(t) + 4)}" text-anchor="end">{t}</text>')
+    for t in (0, 25, 50, 75, 100):
+        o.append(f'<text class="tick" x="{W - R + 8}" y="{n(Y2(t) + 4)}">{t}%</text>')
+    o.append(f'<text class="axis-label" x="{W - R + 8}" y="{T - 18}">MFU</text>')
+    for t in (2000, 4000, 6000, 8000):
+        o.append(f'<text class="tick" x="{n(X(t))}" y="{H - B + 20}" text-anchor="middle">{t}</text>')
+    o.append(f'<text class="axis-label" x="{W - R}" y="{H - 6}" text-anchor="end">step</text>')
+    o.append(f'<path class="line line-thin line-2" d="{path([(X(s_), Y2(m)) for s_, _, m in rows])}"/>')
+    o.append(f'<path class="line line-thin" d="{path([(X(s_), Y(v)) for s_, v, _ in rows])}"/>')
+    for s_, v, m in rows[::8]:
+        o.append(f'<circle class="hit" cx="{n(X(s_))}" cy="{n(Y(v))}" r="6">'
+                 f'<title>Step {s_}: {v:.1f}k tokens per second, {m:.1f}% MFU</title></circle>')
+    med = sorted(v for _, v, _ in rows)[len(rows) // 2]
+    medm = sorted(m for _, _, m in rows)[len(rows) // 2]
+    desc = (f"Training throughput across the run, median {med:.1f} thousand tokens per second at {medm:.0f}% "
+            "model-FLOPs utilisation. The dips are benchmark evaluations sharing the GPU with training.")
+    (OUT / "llm-0.5b-throughput.svg").write_text(svg(W, H, "Throughput", desc, o))
+
+
 # ---- 4. Gradient norm per layer, over training ----------------------------------
-def grad_heatmap():
-    rows = [r for r in read("grad_norm_by_layer.csv") if int(r["step"]) % 100 == 0]
+def layer_heatmap(csv_name, out_name, title, what, lo, hi, desc, log=True):
+    rows = [r for r in read(csv_name) if int(r["step"]) % 100 == 0]
     layers = [k for k in rows[0] if k.startswith("layer_")]
     vals = [[float(r[k]) for k in layers] for r in rows]
-    lo, hi = 0.02, 0.5
     bins = 7
     edges = [lo * (hi / lo) ** (i / bins) for i in range(bins + 1)]
 
@@ -235,7 +327,8 @@ def grad_heatmap():
     paths = {i: [] for i in range(bins)}
     for ci, col in enumerate(vals):
         for li, v in enumerate(col):
-            b = min(bins - 1, max(0, int(math.log(v / lo) / math.log(hi / lo) * bins)))
+            f = (math.log(v / lo) / math.log(hi / lo)) if log else ((v - lo) / (hi - lo))
+            b = min(bins - 1, max(0, int(f * bins)))
             x = L + ci * cw
             y = T + li * cell_h
             paths[b].append(f"M{n(x)},{n(y)}h{n(cw - 1)}v{cell_h - 1}h{n(-(cw - 1))}z")
@@ -245,7 +338,7 @@ def grad_heatmap():
             o.append(f'<path class="heat heat-{b}" d="{"".join(segs)}"/>')
     for li in (0, 6, 12, 18, 23):
         o.append(f'<text class="tick" x="{L - 8}" y="{n(T + li * cell_h + cell_h - 1.5)}" text-anchor="end">layer {li}</text>')
-    for s in (100, 1000, 2000, 3000, 4000):
+    for s in (100, 2000, 4000, 6000, 8000):
         ci = next(i for i, r in enumerate(rows) if int(r["step"]) == s)
         o.append(f'<text class="tick" x="{n(L + ci * cw + cw / 2)}" y="{T + H_plot + 16}" text-anchor="middle">{s}</text>')
     o.append(f'<text class="axis-label" x="{W - R}" y="{T + H_plot + 32}" text-anchor="end">training step</text>')
@@ -262,19 +355,104 @@ def grad_heatmap():
     o.append(f'<text class="tick" x="{lx}" y="{ly + 9}">smaller</text>')
     for b in range(bins):
         o.append(f'<rect class="heat heat-{b}" x="{lx + 52 + b * 22}" y="{ly}" width="20" height="10"/>')
-    o.append(f'<text class="tick" x="{lx + 52 + bins * 22 + 6}" y="{ly + 9}">larger gradient norm ({edges[0]:.2f} to {edges[-1]:.1f}, log scale)</text>')
+    scale_txt = "log scale" if log else "linear scale"
+    o.append(f'<text class="tick" x="{lx + 52 + bins * 22 + 6}" y="{ly + 9}">larger {what} ({edges[0]:.2f} to {edges[-1]:.1f}, {scale_txt})</text>')
 
-    desc = ("Heatmap of gradient norm for each of the 24 layers at every 100 steps. Layer 0 is consistently the darkest, "
-            "with roughly four times the gradient of the early-middle layers, and the second half of the network runs darker "
-            "than the first. All layers lighten together through phase 1, darken slightly when the learning rate restarts at "
-            "steps 2000 and 4000, and no layer drifts away from the rest.")
-    (OUT / "llm-0.5b-grad-heatmap.svg").write_text(svg(W, H, "Gradient norm by layer", desc, o))
+    (OUT / out_name).write_text(svg(W, H, title, desc, o))
+
+
+def grad_heatmap():
+    layer_heatmap(
+        "grad_norm_by_layer.csv", "llm-0.5b-grad-heatmap.svg", "Gradient norm by layer",
+        "gradient norm", 0.02, 0.5,
+        "Heatmap of gradient norm for each of the 24 layers at every 100 steps. Layer 0 is consistently the darkest, "
+        "with roughly four times the gradient of the early-middle layers, and the second half of the network runs darker "
+        "than the first. All layers lighten together as training proceeds, darken slightly when the learning rate restarts "
+        "at steps 2000 and 4000, and no layer drifts away from the rest.")
+
+
+def resid_heatmap():
+    rows = [r for r in read("resid_rms_by_layer.csv") if int(r["step"]) % 100 == 0]
+    layers = [k for k in rows[0] if k.startswith("layer_")]
+    vals = [float(r[k]) for r in rows for k in layers]
+    layer_heatmap(
+        "resid_rms_by_layer.csv", "llm-0.5b-resid-heatmap.svg", "Residual stream size by layer",
+        "activation size", min(vals), max(vals),
+        "Heatmap of the root-mean-square size of the residual stream leaving each of the 24 layers, every 100 steps. "
+        "The picture is banded by depth rather than by time: each layer adds to a running sum, so the stream grows "
+        "steadily from layer 0 to layer 23 and the bottom of the chart stays light while the top stays dark. The "
+        "gradient is smooth, with no single layer breaking away from its neighbours.",
+        log=False)
+
+
+def diagnostics():
+    """Two things the loss curve cannot tell you: how confident the model is, and how
+    fast each tensor is still moving."""
+    diag = [(int(r["step"]), float(r["pred_entropy"])) for r in read("diagnostics.csv") if r["pred_entropy"]]
+    ur_rows = read("update_ratios.csv")
+    cols = [c for c in ("tok_emb", "L0.attn.wo", "L12.attn.wo", "L23.attn.wo") if c in ur_rows[0]]
+
+    W, L, R = 760, 52, 116
+    T1, H1 = 34, 190
+    T2, H2 = 246, 402
+    H = 446
+    last = diag[-1][0]
+    X = Scale(0, last, L, W - R)
+    ehi = max(v for _, v in diag)
+    Y = Scale(2.5, math.ceil(ehi), H1, T1)
+
+    o = [f'<text class="axis-label" x="{L}" y="{T1 - 18}">prediction entropy, nats</text>']
+    t = 3.0
+    while t <= ehi + 0.5:
+        o.append(f'<line class="grid" x1="{L}" x2="{W - R}" y1="{n(Y(t))}" y2="{n(Y(t))}"/>')
+        o.append(f'<text class="tick" x="{L - 8}" y="{n(Y(t) + 4)}" text-anchor="end">{t:.0f}</text>')
+        t += 1
+    o.append(f'<path class="line" d="{path([(X(s_), Y(v)) for s_, v in diag])}"/>')
+    for s_, v in diag[::4]:
+        o.append(f'<circle class="hit" cx="{n(X(s_))}" cy="{n(Y(v))}" r="6">'
+                 f'<title>Step {s_}: entropy {v:.2f} nats</title></circle>')
+    o.append(f'<text class="value" x="{n(X(last) - 8)}" y="{n(Y(diag[-1][1]) - 8)}" text-anchor="end">{diag[-1][1]:.2f}</text>')
+
+    lo = min(float(r[c]) for r in ur_rows for c in cols if float(r[c]) > 0)
+    hi = max(float(r[c]) for r in ur_rows for c in cols)
+    Y2 = Scale(lo * 0.7, hi * 1.4, H2, T2, log=True)
+    o.append(f'<text class="axis-label" x="{L}" y="{T2 - 18}">update size relative to weight size, log scale</text>')
+    e = math.floor(math.log10(lo))
+    while e <= math.ceil(math.log10(hi)):
+        gv = 10.0 ** e
+        if lo * 0.7 <= gv <= hi * 1.4:
+            o.append(f'<line class="grid" x1="{L}" x2="{W - R}" y1="{n(Y2(gv))}" y2="{n(Y2(gv))}"/>')
+            o.append(f'<text class="tick" x="{L - 8}" y="{n(Y2(gv) + 4)}" text-anchor="end">1e{e}</text>')
+        e += 1
+    for i, c in enumerate(cols):
+        pts = [(int(r["step"]), float(r[c])) for r in ur_rows if float(r[c]) > 0]
+        cls = "line" if i == 0 else f"line line-{min(i + 1, 2)}"
+        if i > 1:
+            cls += " line-gap"
+        o.append(f'<path class="{cls} line-thin" d="{path([(X(s_), Y2(v)) for s_, v in pts])}"/>')
+        o.append(f'<text class="note" x="{W - R + 6}" y="{n(Y2(pts[-1][1]) + 4)}">{c}</text>')
+    for s_ in (2000, 4000, 6000, 8000):
+        o.append(f'<text class="tick" x="{n(X(s_))}" y="{H2 + 20}" text-anchor="middle">{s_}</text>')
+    o.append(f'<text class="axis-label" x="{W - R}" y="{H - 6}" text-anchor="end">step</text>')
+    for s_ in (2000, 4000):
+        o.append(f'<line class="boundary" x1="{n(X(s_))}" x2="{n(X(s_))}" y1="{T1}" y2="{H2}"/>')
+
+    desc = (f"Two panels sharing the step axis. Top: mean prediction entropy falls from {diag[0][1]:.2f} nats to "
+            f"{diag[-1][1]:.2f} as the model becomes more certain of its next token. Bottom: the size of each "
+            "optimizer update relative to the weight it changes, on a log scale, for the embedding table and the "
+            "attention output projections of layers 0, 12 and 23. All of them shrink as the learning rate decays, "
+            "and step back up at each restart.")
+    (OUT / "llm-0.5b-diagnostics.svg").write_text(svg(W, H, "Entropy and update size", desc, o))
 
 
 if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)
     loss_and_lr()
+    loss_loglog()
+    throughput()
     accuracy_vs_tokens()
     per_task()
     grad_heatmap()
+    resid_heatmap()
+    diagnostics()
     print("wrote", ", ".join(sorted(p.name for p in OUT.glob("llm-0.5b-*"))))

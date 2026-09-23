@@ -1,0 +1,112 @@
+<svg class="chart" viewBox="0 0 760 300" role="img" aria-labelledby="validation-loss-against--t validation-loss-against--d">
+<title id="validation-loss-against--t">Validation loss against tokens</title>
+<desc id="validation-loss-against--d">Validation loss against training tokens, both axes logarithmic. The points fall on a near-straight line from 6.10 at 0.05B tokens to 2.998 at 4.19B, with a fitted slope of -0.106 over the second half. A straight line means the run is still in the power-law regime and has not begun to flatten.</desc>
+<text class="axis-label" x="52" y="16">validation loss, log scale</text>
+<line class="grid" x1="52" x2="734" y1="246.5" y2="246.5"/>
+<text class="tick" x="44" y="250.5" text-anchor="end">3.0</text>
+<line class="grid" x1="52" x2="734" y1="203.3" y2="203.3"/>
+<text class="tick" x="44" y="207.3" text-anchor="end">3.5</text>
+<line class="grid" x1="52" x2="734" y1="165.8" y2="165.8"/>
+<text class="tick" x="44" y="169.8" text-anchor="end">4.0</text>
+<line class="grid" x1="52" x2="734" y1="132.8" y2="132.8"/>
+<text class="tick" x="44" y="136.8" text-anchor="end">4.5</text>
+<line class="grid" x1="52" x2="734" y1="103.2" y2="103.2"/>
+<text class="tick" x="44" y="107.2" text-anchor="end">5.0</text>
+<line class="grid" x1="52" x2="734" y1="76.5" y2="76.5"/>
+<text class="tick" x="44" y="80.5" text-anchor="end">5.5</text>
+<line class="grid" x1="52" x2="734" y1="52.1" y2="52.1"/>
+<text class="tick" x="44" y="56.1" text-anchor="end">6.0</text>
+<text class="tick" x="68.8" y="276" text-anchor="middle">50M</text>
+<text class="tick" x="169.7" y="276" text-anchor="middle">100M</text>
+<text class="tick" x="404.0" y="276" text-anchor="middle">500M</text>
+<text class="tick" x="504.9" y="276" text-anchor="middle">1B</text>
+<text class="tick" x="605.8" y="276" text-anchor="middle">2B</text>
+<text class="tick" x="706.7" y="276" text-anchor="middle">4B</text>
+<text class="axis-label" x="734" y="294" text-anchor="end">training tokens, log scale</text>
+<path class="line line-gap line-2" d="M616.3,228.3 L730.2,251.4"/>
+<text class="note" x="730.2" y="269.4" text-anchor="end">slope -0.106</text>
+<path class="line" d="M75.7,47.3 L176.6,84.8 L235.6,118.3 L277.5,139.9 L310.0,157.1 L336.5,169.6 L359.0,179.3 L378.4,186.8 L395.6,192.5 L410.9,197.0 L424.8,200.9 L437.4,204.2 L449.1,207.1 L459.9,209.7 L469.9,211.8 L479.3,213.7 L488.2,215.1 L496.5,216.2 L504.3,217.1 L511.8,217.8 L518.9,212.9 L525.7,212.8 L532.2,214.4 L538.4,216.3 L544.3,217.5 L550.0,219.0 L555.5,220.6 L560.8,222.2 L565.9,223.8 L570.9,224.9 L575.6,226.3 L580.2,227.6 L584.7,228.8 L589.1,229.9 L593.3,231.0 L597.4,231.8 L601.4,232.5 L605.3,233.1 L609.0,233.5 L612.7,233.8 L616.3,229.9 L619.8,229.0 L623.3,229.4 L626.6,229.9 L629.9,230.3 L633.1,230.9 L636.2,231.6 L639.3,232.5 L642.3,233.1 L645.2,233.8 L648.1,234.5 L650.9,235.2 L653.7,235.9 L656.4,236.2 L659.1,236.9 L661.7,237.7 L664.3,238.2 L666.8,238.8 L669.3,239.6 L671.8,240.1 L674.2,240.6 L676.5,241.1 L678.9,241.7 L681.2,242.2 L683.4,242.5 L685.6,243.0 L687.8,243.4 L690.0,244.0 L692.1,244.3 L694.2,244.6 L696.3,245.0 L698.3,245.3 L700.3,245.5 L702.3,245.7 L704.3,246.0 L706.2,246.1 L708.1,246.3 L710.0,246.4 L711.8,246.6 L713.7,246.7"/>
+<circle class="hit" cx="75.7" cy="47.3" r="7"><title>0.05B tokens: validation loss 6.1040</title></circle>
+<circle class="hit" cx="176.6" cy="84.8" r="7"><title>0.10B tokens: validation loss 5.3402</title></circle>
+<circle class="hit" cx="235.6" cy="118.3" r="7"><title>0.16B tokens: validation loss 4.7384</title></circle>
+<circle class="hit" cx="277.5" cy="139.9" r="7"><title>0.21B tokens: validation loss 4.3870</title></circle>
+<circle class="hit" cx="310.0" cy="157.1" r="7"><title>0.26B tokens: validation loss 4.1264</title></circle>
+<circle class="hit" cx="336.5" cy="169.6" r="7"><title>0.31B tokens: validation loss 3.9457</title></circle>
+<circle class="hit" cx="359.0" cy="179.3" r="7"><title>0.37B tokens: validation loss 3.8117</title></circle>
+<circle class="hit" cx="378.4" cy="186.8" r="7"><title>0.42B tokens: validation loss 3.7120</title></circle>
+<circle class="hit" cx="395.6" cy="192.5" r="7"><title>0.47B tokens: validation loss 3.6366</title></circle>
+<circle class="hit" cx="410.9" cy="197.0" r="7"><title>0.52B tokens: validation loss 3.5790</title></circle>
+<circle class="hit" cx="424.8" cy="200.9" r="7"><title>0.58B tokens: validation loss 3.5292</title></circle>
+<circle class="hit" cx="437.4" cy="204.2" r="7"><title>0.63B tokens: validation loss 3.4889</title></circle>
+<circle class="hit" cx="449.1" cy="207.1" r="7"><title>0.68B tokens: validation loss 3.4524</title></circle>
+<circle class="hit" cx="459.9" cy="209.7" r="7"><title>0.73B tokens: validation loss 3.4203</title></circle>
+<circle class="hit" cx="469.9" cy="211.8" r="7"><title>0.79B tokens: validation loss 3.3948</title></circle>
+<circle class="hit" cx="479.3" cy="213.7" r="7"><title>0.84B tokens: validation loss 3.3722</title></circle>
+<circle class="hit" cx="488.2" cy="215.1" r="7"><title>0.89B tokens: validation loss 3.3553</title></circle>
+<circle class="hit" cx="496.5" cy="216.2" r="7"><title>0.94B tokens: validation loss 3.3419</title></circle>
+<circle class="hit" cx="504.3" cy="217.1" r="7"><title>1.00B tokens: validation loss 3.3314</title></circle>
+<circle class="hit" cx="511.8" cy="217.8" r="7"><title>1.05B tokens: validation loss 3.3226</title></circle>
+<circle class="hit" cx="518.9" cy="212.9" r="7"><title>1.10B tokens: validation loss 3.3822</title></circle>
+<circle class="hit" cx="525.7" cy="212.8" r="7"><title>1.15B tokens: validation loss 3.3827</title></circle>
+<circle class="hit" cx="532.2" cy="214.4" r="7"><title>1.21B tokens: validation loss 3.3633</title></circle>
+<circle class="hit" cx="538.4" cy="216.3" r="7"><title>1.26B tokens: validation loss 3.3412</title></circle>
+<circle class="hit" cx="544.3" cy="217.5" r="7"><title>1.31B tokens: validation loss 3.3265</title></circle>
+<circle class="hit" cx="550.0" cy="219.0" r="7"><title>1.36B tokens: validation loss 3.3085</title></circle>
+<circle class="hit" cx="555.5" cy="220.6" r="7"><title>1.42B tokens: validation loss 3.2900</title></circle>
+<circle class="hit" cx="560.8" cy="222.2" r="7"><title>1.47B tokens: validation loss 3.2711</title></circle>
+<circle class="hit" cx="565.9" cy="223.8" r="7"><title>1.52B tokens: validation loss 3.2525</title></circle>
+<circle class="hit" cx="570.9" cy="224.9" r="7"><title>1.57B tokens: validation loss 3.2397</title></circle>
+<circle class="hit" cx="575.6" cy="226.3" r="7"><title>1.63B tokens: validation loss 3.2236</title></circle>
+<circle class="hit" cx="580.2" cy="227.6" r="7"><title>1.68B tokens: validation loss 3.2089</title></circle>
+<circle class="hit" cx="584.7" cy="228.8" r="7"><title>1.73B tokens: validation loss 3.1955</title></circle>
+<circle class="hit" cx="589.1" cy="229.9" r="7"><title>1.78B tokens: validation loss 3.1823</title></circle>
+<circle class="hit" cx="593.3" cy="231.0" r="7"><title>1.84B tokens: validation loss 3.1707</title></circle>
+<circle class="hit" cx="597.4" cy="231.8" r="7"><title>1.89B tokens: validation loss 3.1618</title></circle>
+<circle class="hit" cx="601.4" cy="232.5" r="7"><title>1.94B tokens: validation loss 3.1532</title></circle>
+<circle class="hit" cx="605.3" cy="233.1" r="7"><title>1.99B tokens: validation loss 3.1471</title></circle>
+<circle class="hit" cx="609.0" cy="233.5" r="7"><title>2.04B tokens: validation loss 3.1424</title></circle>
+<circle class="hit" cx="612.7" cy="233.8" r="7"><title>2.10B tokens: validation loss 3.1387</title></circle>
+<circle class="hit" cx="616.3" cy="229.9" r="7"><title>2.15B tokens: validation loss 3.1833</title></circle>
+<circle class="hit" cx="619.8" cy="229.0" r="7"><title>2.20B tokens: validation loss 3.1931</title></circle>
+<circle class="hit" cx="623.3" cy="229.4" r="7"><title>2.25B tokens: validation loss 3.1888</title></circle>
+<circle class="hit" cx="626.6" cy="229.9" r="7"><title>2.31B tokens: validation loss 3.1825</title></circle>
+<circle class="hit" cx="629.9" cy="230.3" r="7"><title>2.36B tokens: validation loss 3.1781</title></circle>
+<circle class="hit" cx="633.1" cy="230.9" r="7"><title>2.41B tokens: validation loss 3.1715</title></circle>
+<circle class="hit" cx="636.2" cy="231.6" r="7"><title>2.46B tokens: validation loss 3.1634</title></circle>
+<circle class="hit" cx="639.3" cy="232.5" r="7"><title>2.52B tokens: validation loss 3.1540</title></circle>
+<circle class="hit" cx="642.3" cy="233.1" r="7"><title>2.57B tokens: validation loss 3.1467</title></circle>
+<circle class="hit" cx="645.2" cy="233.8" r="7"><title>2.62B tokens: validation loss 3.1393</title></circle>
+<circle class="hit" cx="648.1" cy="234.5" r="7"><title>2.67B tokens: validation loss 3.1314</title></circle>
+<circle class="hit" cx="650.9" cy="235.2" r="7"><title>2.73B tokens: validation loss 3.1235</title></circle>
+<circle class="hit" cx="653.7" cy="235.9" r="7"><title>2.78B tokens: validation loss 3.1157</title></circle>
+<circle class="hit" cx="656.4" cy="236.2" r="7"><title>2.83B tokens: validation loss 3.1117</title></circle>
+<circle class="hit" cx="659.1" cy="236.9" r="7"><title>2.88B tokens: validation loss 3.1044</title></circle>
+<circle class="hit" cx="661.7" cy="237.7" r="7"><title>2.94B tokens: validation loss 3.0959</title></circle>
+<circle class="hit" cx="664.3" cy="238.2" r="7"><title>2.99B tokens: validation loss 3.0900</title></circle>
+<circle class="hit" cx="666.8" cy="238.8" r="7"><title>3.04B tokens: validation loss 3.0832</title></circle>
+<circle class="hit" cx="669.3" cy="239.6" r="7"><title>3.09B tokens: validation loss 3.0749</title></circle>
+<circle class="hit" cx="671.8" cy="240.1" r="7"><title>3.15B tokens: validation loss 3.0696</title></circle>
+<circle class="hit" cx="674.2" cy="240.6" r="7"><title>3.20B tokens: validation loss 3.0641</title></circle>
+<circle class="hit" cx="676.5" cy="241.1" r="7"><title>3.25B tokens: validation loss 3.0578</title></circle>
+<circle class="hit" cx="678.9" cy="241.7" r="7"><title>3.30B tokens: validation loss 3.0514</title></circle>
+<circle class="hit" cx="681.2" cy="242.2" r="7"><title>3.36B tokens: validation loss 3.0464</title></circle>
+<circle class="hit" cx="683.4" cy="242.5" r="7"><title>3.41B tokens: validation loss 3.0430</title></circle>
+<circle class="hit" cx="685.6" cy="243.0" r="7"><title>3.46B tokens: validation loss 3.0379</title></circle>
+<circle class="hit" cx="687.8" cy="243.4" r="7"><title>3.51B tokens: validation loss 3.0330</title></circle>
+<circle class="hit" cx="690.0" cy="244.0" r="7"><title>3.57B tokens: validation loss 3.0268</title></circle>
+<circle class="hit" cx="692.1" cy="244.3" r="7"><title>3.62B tokens: validation loss 3.0234</title></circle>
+<circle class="hit" cx="694.2" cy="244.6" r="7"><title>3.67B tokens: validation loss 3.0200</title></circle>
+<circle class="hit" cx="696.3" cy="245.0" r="7"><title>3.72B tokens: validation loss 3.0165</title></circle>
+<circle class="hit" cx="698.3" cy="245.3" r="7"><title>3.77B tokens: validation loss 3.0130</title></circle>
+<circle class="hit" cx="700.3" cy="245.5" r="7"><title>3.83B tokens: validation loss 3.0103</title></circle>
+<circle class="hit" cx="702.3" cy="245.7" r="7"><title>3.88B tokens: validation loss 3.0084</title></circle>
+<circle class="hit" cx="704.3" cy="246.0" r="7"><title>3.93B tokens: validation loss 3.0053</title></circle>
+<circle class="hit" cx="706.2" cy="246.1" r="7"><title>3.98B tokens: validation loss 3.0038</title></circle>
+<circle class="hit" cx="708.1" cy="246.3" r="7"><title>4.04B tokens: validation loss 3.0025</title></circle>
+<circle class="hit" cx="710.0" cy="246.4" r="7"><title>4.09B tokens: validation loss 3.0007</title></circle>
+<circle class="hit" cx="711.8" cy="246.6" r="7"><title>4.14B tokens: validation loss 2.9990</title></circle>
+<circle class="hit" cx="713.7" cy="246.7" r="7"><title>4.19B tokens: validation loss 2.9982</title></circle>
+<circle class="dot" cx="75.7" cy="47.3" r="4"/>
+<circle class="dot" cx="713.7" cy="246.7" r="4"/>
+<text class="value" x="703.7" y="236.7" text-anchor="end">2.998</text>
+</svg>
