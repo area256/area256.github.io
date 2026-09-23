@@ -353,12 +353,6 @@ pre code {
   font-size: var(--text-small);
 }
 
-.post-authors {
-  display: block;
-  color: var(--faint);
-  font-size: var(--text-xsmall);
-}
-
 .post-authors a,
 .post-by a {
   text-decoration: none;
