@@ -1,0 +1,66 @@
+<svg class="chart" viewBox="0 0 640 300" role="img" aria-labelledby="vl-title vl-desc">
+<title id="vl-title">Validation loss against training tokens</title>
+<desc id="vl-desc">Validation loss falls from 3.58 at 0.52B tokens to 3.32 at the end of phase 1 (1.05B tokens). Phase 2 restarts the learning rate and loss rises to 3.38 before falling to 3.14 at 2.10B tokens. Phase 3 restarts again and loss rises to 3.18 at 2.15B tokens.</desc>
+<line class="grid" x1="44" x2="568" y1="260.0" y2="260.0"/>
+<text class="tick" x="36" y="264.0" text-anchor="end">3.1</text>
+<line class="grid" x1="44" x2="568" y1="212.0" y2="212.0"/>
+<text class="tick" x="36" y="216.0" text-anchor="end">3.2</text>
+<line class="grid" x1="44" x2="568" y1="164.0" y2="164.0"/>
+<text class="tick" x="36" y="168.0" text-anchor="end">3.3</text>
+<line class="grid" x1="44" x2="568" y1="116.0" y2="116.0"/>
+<text class="tick" x="36" y="120.0" text-anchor="end">3.4</text>
+<line class="grid" x1="44" x2="568" y1="68.0" y2="68.0"/>
+<text class="tick" x="36" y="72.0" text-anchor="end">3.5</text>
+<line class="grid" x1="44" x2="568" y1="20.0" y2="20.0"/>
+<text class="tick" x="36" y="24.0" text-anchor="end">3.6</text>
+<text class="tick" x="44.0" y="278" text-anchor="middle">0.5B</text>
+<text class="tick" x="198.1" y="278" text-anchor="middle">1.0B</text>
+<text class="tick" x="352.2" y="278" text-anchor="middle">1.5B</text>
+<text class="tick" x="506.4" y="278" text-anchor="middle">2.0B</text>
+<text class="tick" x="568" y="296" text-anchor="end">training tokens</text>
+<line class="boundary" x1="213.1" x2="213.1" y1="20" y2="260"/>
+<text class="note" x="219.1" y="30" text-anchor="start">phase 2 restart</text>
+<line class="boundary" x1="536.3" x2="536.3" y1="20" y2="260"/>
+<text class="note" x="530.3" y="30" text-anchor="end">phase 3 restart</text>
+<path class="line" d="M51.5,30.1 L67.6,54.0 L83.8,73.3 L100.0,90.8 L116.1,106.3 L132.3,118.5 L148.4,129.3 L164.6,137.5 L180.8,143.9 L196.9,148.9 L213.1,153.2"/>
+<path class="line" d="M213.1,153.2 L229.3,124.5 L245.4,124.3 L261.6,133.6 L277.7,144.2 L293.9,151.3 L310.1,159.9 L326.2,168.8 L342.4,177.9 L358.5,186.8 L374.7,192.9 L390.9,200.7 L407.0,207.7 L423.2,214.2 L439.3,220.5 L455.5,226.1 L471.7,230.3 L487.8,234.5 L504.0,237.4 L520.1,239.6 L536.3,241.4"/>
+<path class="line line-live" d="M536.3,241.4 L552.5,220.0"/>
+<circle class="hit" cx="51.5" cy="30.1" r="7"><title>step 1000 · 0.52B tokens · val loss 3.5790</title></circle>
+<circle class="hit" cx="67.6" cy="54.0" r="7"><title>step 1100 · 0.58B tokens · val loss 3.5292</title></circle>
+<circle class="hit" cx="83.8" cy="73.3" r="7"><title>step 1200 · 0.63B tokens · val loss 3.4889</title></circle>
+<circle class="hit" cx="100.0" cy="90.8" r="7"><title>step 1300 · 0.68B tokens · val loss 3.4524</title></circle>
+<circle class="hit" cx="116.1" cy="106.3" r="7"><title>step 1400 · 0.73B tokens · val loss 3.4203</title></circle>
+<circle class="hit" cx="132.3" cy="118.5" r="7"><title>step 1500 · 0.79B tokens · val loss 3.3948</title></circle>
+<circle class="hit" cx="148.4" cy="129.3" r="7"><title>step 1600 · 0.84B tokens · val loss 3.3722</title></circle>
+<circle class="hit" cx="164.6" cy="137.5" r="7"><title>step 1700 · 0.89B tokens · val loss 3.3553</title></circle>
+<circle class="hit" cx="180.8" cy="143.9" r="7"><title>step 1800 · 0.94B tokens · val loss 3.3419</title></circle>
+<circle class="hit" cx="196.9" cy="148.9" r="7"><title>step 1900 · 1.00B tokens · val loss 3.3314</title></circle>
+<circle class="hit" cx="213.1" cy="153.2" r="7"><title>step 2000 · 1.05B tokens · val loss 3.3226</title></circle>
+<circle class="hit" cx="229.3" cy="124.5" r="7"><title>step 2100 · 1.10B tokens · val loss 3.3822</title></circle>
+<circle class="hit" cx="245.4" cy="124.3" r="7"><title>step 2200 · 1.15B tokens · val loss 3.3827</title></circle>
+<circle class="hit" cx="261.6" cy="133.6" r="7"><title>step 2300 · 1.21B tokens · val loss 3.3633</title></circle>
+<circle class="hit" cx="277.7" cy="144.2" r="7"><title>step 2400 · 1.26B tokens · val loss 3.3412</title></circle>
+<circle class="hit" cx="293.9" cy="151.3" r="7"><title>step 2500 · 1.31B tokens · val loss 3.3265</title></circle>
+<circle class="hit" cx="310.1" cy="159.9" r="7"><title>step 2600 · 1.36B tokens · val loss 3.3085</title></circle>
+<circle class="hit" cx="326.2" cy="168.8" r="7"><title>step 2700 · 1.42B tokens · val loss 3.2900</title></circle>
+<circle class="hit" cx="342.4" cy="177.9" r="7"><title>step 2800 · 1.47B tokens · val loss 3.2711</title></circle>
+<circle class="hit" cx="358.5" cy="186.8" r="7"><title>step 2900 · 1.52B tokens · val loss 3.2525</title></circle>
+<circle class="hit" cx="374.7" cy="192.9" r="7"><title>step 3000 · 1.57B tokens · val loss 3.2397</title></circle>
+<circle class="hit" cx="390.9" cy="200.7" r="7"><title>step 3100 · 1.63B tokens · val loss 3.2236</title></circle>
+<circle class="hit" cx="407.0" cy="207.7" r="7"><title>step 3200 · 1.68B tokens · val loss 3.2089</title></circle>
+<circle class="hit" cx="423.2" cy="214.2" r="7"><title>step 3300 · 1.73B tokens · val loss 3.1955</title></circle>
+<circle class="hit" cx="439.3" cy="220.5" r="7"><title>step 3400 · 1.78B tokens · val loss 3.1823</title></circle>
+<circle class="hit" cx="455.5" cy="226.1" r="7"><title>step 3500 · 1.84B tokens · val loss 3.1707</title></circle>
+<circle class="hit" cx="471.7" cy="230.3" r="7"><title>step 3600 · 1.89B tokens · val loss 3.1618</title></circle>
+<circle class="hit" cx="487.8" cy="234.5" r="7"><title>step 3700 · 1.94B tokens · val loss 3.1532</title></circle>
+<circle class="hit" cx="504.0" cy="237.4" r="7"><title>step 3800 · 1.99B tokens · val loss 3.1471</title></circle>
+<circle class="hit" cx="520.1" cy="239.6" r="7"><title>step 3900 · 2.04B tokens · val loss 3.1424</title></circle>
+<circle class="hit" cx="536.3" cy="241.4" r="7"><title>step 4000 · 2.10B tokens · val loss 3.1387</title></circle>
+<circle class="hit" cx="552.5" cy="220.0" r="7"><title>step 4100 · 2.15B tokens · val loss 3.1833</title></circle>
+<circle class="dot" cx="213.1" cy="153.2" r="4"/>
+<text class="value" x="205.1" y="171.2" text-anchor="end">3.323</text>
+<circle class="dot" cx="536.3" cy="241.4" r="4"/>
+<text class="value" x="544.3" y="257.4" text-anchor="start">3.139</text>
+<circle class="dot" cx="552.5" cy="220.0" r="4"/>
+<text class="value" x="560.5" y="210.0" text-anchor="start">3.183</text>
+</svg>
