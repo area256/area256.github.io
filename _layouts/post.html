@@ -1,6 +1,9 @@
 ---
 layout: default
 ---
+{%- assign h2_count = content | split: '<h2 id="' | size | minus: 1 -%}
+{%- if h2_count >= 3 and page.toc != false -%}{%- assign show_toc = true -%}{%- endif -%}
+<div class="post-grid{% if show_toc %} has-toc{% endif %}">
 <article class="post">
     <header class="post-header">
         <h1>{{ page.title }}</h1>
@@ -22,3 +25,36 @@ layout: default
     </nav>
     {% endif %}
 </article>
+{% if show_toc %}
+<aside class="toc-rail">
+    {% include toc.html html=content %}
+</aside>
+
+<script>
+// Mark the section being read. Without script the contents list still works as plain links.
+(function () {
+  var links = document.querySelectorAll('.toc a');
+  if (!links.length) return;
+  var byId = {};
+  links.forEach(function (a) { byId[decodeURIComponent(a.hash.slice(1))] = a; });
+  var headings = Array.prototype.filter.call(document.querySelectorAll('.prose h2[id]'), function (h) { return byId[h.id]; });
+  var pending = false;
+
+  function update() {
+    pending = false;
+    var current = headings[0];
+    headings.forEach(function (h) { if (h.getBoundingClientRect().top < window.innerHeight * 0.3) current = h; });
+    // Short closing sections never reach the top of the screen; at the very bottom, mark the last one.
+    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) current = headings[headings.length - 1];
+    links.forEach(function (a) { a.removeAttribute('aria-current'); });
+    if (current) byId[current.id].setAttribute('aria-current', 'location');
+  }
+
+  window.addEventListener('scroll', function () {
+    if (!pending) { pending = true; requestAnimationFrame(update); }
+  }, { passive: true });
+  update();
+})();
+</script>
+{% endif %}
+</div>

@@ -579,6 +579,82 @@ pre code {
 }
 .chart .value { fill: var(--fg); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
 
+/* ---- Contents ------------------------------------------------------------ */
+/* On wide screens a post's sections are listed in the right margin and the list
+   stays in view while reading. Wide figures then bleed left only, clear of it. */
+.toc-rail {
+  display: none;
+}
+
+.prose h2 {
+  scroll-margin-top: 1.5rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@media (min-width: 1200px) {
+  .post-grid.has-toc {
+    display: grid;
+    grid-template-columns: 100% 12rem;
+    column-gap: 3rem;
+  }
+
+  .has-toc .toc-rail {
+    display: block;
+  }
+
+  .has-toc .prose figure.wide {
+    margin-left: calc(100% - var(--wide));
+  }
+
+  .has-toc .prose figure.wide figcaption {
+    margin-right: 0;
+  }
+}
+
+.toc {
+  position: sticky;
+  top: 2rem;
+  max-height: calc(100vh - 4rem);
+  margin-top: 2.35rem;
+  overflow-y: auto;
+}
+
+.toc-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-left: 1px solid var(--rule);
+  font-size: var(--text-small);
+  line-height: 1.35;
+}
+
+.toc-list li {
+  margin: 0;
+}
+
+.toc a {
+  display: block;
+  margin-left: -1px;
+  padding: 0.3rem 0 0.3rem 0.9rem;
+  border-left: 2px solid transparent;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.toc a:hover {
+  color: var(--fg);
+}
+
+.toc a[aria-current] {
+  border-left-color: var(--accent);
+  color: var(--fg);
+}
+
 /* ---- Post ---------------------------------------------------------------- */
 .post-header {
   margin: 2rem 0 1.5rem;

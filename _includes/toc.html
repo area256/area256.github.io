@@ -1,0 +1,15 @@
+{%- comment -%}
+  Table of contents built from the <h2 id="..."> headings in the rendered post.
+  Pass the rendered HTML as `html`; the list is empty when there are no headings.
+{%- endcomment -%}
+{%- assign sections = include.html | split: '<h2 id="' -%}
+<nav class="toc" aria-label="Contents">
+    <ol class="toc-list">
+        {%- for part in sections offset: 1 -%}
+        {%- assign head = part | split: '</h2>' | first -%}
+        {%- assign id = head | split: '">' | first -%}
+        {%- assign title = head | remove_first: id | remove_first: '">' | strip_html -%}
+        <li><a href="#{{ id }}">{{ title }}</a></li>
+        {%- endfor %}
+    </ol>
+</nav>
