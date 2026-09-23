@@ -1,4 +1,5 @@
 ---
+date: 2026-09-22 12:00:00 +0000
 title: Pretraining a 0.5B model on one rented GPU
 authors: [jp]
 description: A 489M-parameter model trained from scratch on 2.1B tokens for about $8 so far, and what the numbers say.

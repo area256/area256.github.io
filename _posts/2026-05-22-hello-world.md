@@ -1,4 +1,5 @@
 ---
+date: 2026-05-22 09:00:00 +0000
 title: Hello, world
 authors: [jp]
 description: What this blog is for and what to expect from it.
