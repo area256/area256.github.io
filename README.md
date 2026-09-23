@@ -25,7 +25,7 @@ Add an entry to `_data/authors.yml`; the key is what posts list under `authors`:
 
 ```yaml
 someone:
-  name: Full Name
+  name: Firstname   # first name only, to keep bylines short
   url: https://github.com/someone
 ```
 
