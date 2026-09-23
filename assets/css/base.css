@@ -313,23 +313,32 @@ pre code {
   background: none;
 }
 
-/* Tables scroll inside their own box instead of widening the page on phones. */
+/* Tables span the column so consecutive tables line up; on phones they
+   scroll inside their own box instead of widening the page. */
 .prose table {
-  display: block;
-  width: max-content;
-  max-width: 100%;
-  margin: 1.25rem 0;
+  width: 100%;
+  margin: 1.5rem 0;
   border-collapse: collapse;
   font-size: var(--text-small);
+  font-variant-numeric: tabular-nums;
   line-height: 1.45;
-  overflow-x: auto;
 }
 
 .prose th,
 .prose td {
-  padding: 0.45rem 0.75rem 0.45rem 0;
+  padding: 0.45rem 0.75rem;
   text-align: left;
   vertical-align: top;
+}
+
+.prose th:first-child,
+.prose td:first-child {
+  padding-left: 0;
+}
+
+.prose th:last-child,
+.prose td:last-child {
+  padding-right: 0;
 }
 
 .prose th {
@@ -341,9 +350,87 @@ pre code {
   border-bottom: 1px solid var(--rule);
 }
 
+/* Bold cells mark the row to look at; tint the whole row instead of
+   coloring every value. */
+.prose tr:has(td strong) td {
+  background: color-mix(in srgb, var(--chart-line) 8%, transparent);
+}
+
+.prose td strong {
+  color: inherit;
+}
+
+@media (max-width: 480px) {
+  .prose table {
+    display: block;
+    overflow-x: auto;
+  }
+}
+
+/* Key/value facts, e.g. a model's configuration. */
+.prose dl.facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  margin: 1.5rem 0;
+  font-size: var(--text-small);
+  line-height: 1.45;
+  border-top: 1px solid var(--fg);
+}
+
+.prose dl.facts dt,
+.prose dl.facts dd {
+  margin: 0;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.prose dl.facts dt {
+  padding-right: 1.5rem;
+  color: var(--muted);
+}
+
+@media (max-width: 480px) {
+  .prose dl.facts {
+    grid-template-columns: 1fr;
+  }
+
+  .prose dl.facts dt {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+
+  .prose dl.facts dd {
+    padding-top: 0.1rem;
+  }
+}
+
 /* ---- Figures and charts ------------------------------------------------- */
 .prose figure {
-  margin: 1.75rem 0;
+  margin: 2rem 0;
+}
+
+/* A wide figure breaks out of the text column on large screens. */
+.prose figure.wide {
+  --wide: min(48rem, 100vw - 2 * var(--gutter));
+  width: var(--wide);
+  margin-left: calc((100% - var(--wide)) / 2);
+}
+
+.prose figure.wide figcaption {
+  max-width: var(--measure);
+  margin-inline: auto;
+}
+
+/* On phones a chart keeps a readable size and scrolls sideways instead of
+   shrinking its labels to nothing. */
+.chart-scroll {
+  overflow-x: auto;
+}
+
+@media (max-width: 480px) {
+  .chart-scroll .chart {
+    min-width: 640px;
+  }
 }
 
 .prose figcaption {
@@ -368,6 +455,11 @@ pre code {
 .chart .hit:hover { fill: color-mix(in srgb, var(--chart-line) 25%, transparent); }
 .chart .tick { fill: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 .chart .note { fill: var(--muted); font-size: 12px; }
+.chart .note-strong { fill: var(--fg); font-size: 12px; font-weight: 600; }
+.chart .axis-label { fill: var(--muted); font-size: 12px; }
+.chart .debt { fill: color-mix(in srgb, var(--chart-line) 18%, transparent); }
+.chart .ref { stroke: var(--chart-line); stroke-width: 1; stroke-dasharray: 2 3; }
+.chart .leader { stroke: var(--muted); stroke-width: 1; }
 .chart .value { fill: var(--fg); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
 
 /* ---- Post ---------------------------------------------------------------- */
@@ -520,6 +612,12 @@ pre code {
 
 /* ---- Small screens ------------------------------------------------------- */
 @media (max-width: 480px) {
+  /* Justified text opens wide gaps in a phone-width column. */
+  .prose p,
+  .prose li {
+    text-align: left;
+  }
+
   .navbar {
     padding-top: 1.25rem;
   }
