@@ -6,7 +6,7 @@
     <meta name="color-scheme" content="light dark">
     {% include head-meta.html %}
 
-    <link rel="stylesheet" href="{{ '/assets/css/base.css' | relative_url }}">
+    <link rel="stylesheet" href="{{ '/assets/css/base.css' | relative_url }}?v={{ site.time | date: '%s' }}">
 
     {%- comment -%} Apply a stored light/dark choice before first paint so the page never flashes the other scheme. {%- endcomment %}
     <script>
