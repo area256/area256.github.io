@@ -1,0 +1,47 @@
+<svg class="chart" viewBox="0 0 760 330" role="img" aria-labelledby="kv-cache-against-context-t kv-cache-against-context-d">
+<title id="kv-cache-against-context-t">KV cache against context length</title>
+<desc id="kv-cache-against-context-d">KV cache for one sequence of our model in bf16. Per token it is 120 KB with 20 KV heads, 24 KB with the 4 our model uses, and 6 KB with one. At 32K tokens that is 4.03, 0.81 and 0.20 GB, against 0.98 GB for the weights.</desc>
+<text class="axis-label" x="56" y="16">KV cache for one sequence, bf16</text>
+<line class="grid" x1="56" x2="570" y1="286.0" y2="286.0"/>
+<text class="tick" x="48" y="290.0" text-anchor="end">0 GB</text>
+<line class="grid" x1="56" x2="570" y1="230.0" y2="230.0"/>
+<text class="tick" x="48" y="234.0" text-anchor="end">1 GB</text>
+<line class="grid" x1="56" x2="570" y1="174.0" y2="174.0"/>
+<text class="tick" x="48" y="178.0" text-anchor="end">2 GB</text>
+<line class="grid" x1="56" x2="570" y1="118.0" y2="118.0"/>
+<text class="tick" x="48" y="122.0" text-anchor="end">3 GB</text>
+<line class="grid" x1="56" x2="570" y1="62.0" y2="62.0"/>
+<text class="tick" x="48" y="66.0" text-anchor="end">4 GB</text>
+<text class="tick" x="56.0" y="306" text-anchor="middle">0K</text>
+<text class="tick" x="184.5" y="306" text-anchor="middle">8K</text>
+<text class="tick" x="313.0" y="306" text-anchor="middle">16K</text>
+<text class="tick" x="441.5" y="306" text-anchor="middle">24K</text>
+<text class="tick" x="570.0" y="306" text-anchor="middle">32K</text>
+<text class="axis-label" x="570" y="324" text-anchor="end">context length, tokens</text>
+<line class="ref" x1="56" x2="570" y1="231.2" y2="231.2"/>
+<text class="note" x="564.0" y="225.2" text-anchor="end">the model's own weights: 0.98 GB</text>
+<path class="line line-other" d="M56.0,286.0 L88.1,271.9 L120.2,257.8 L184.5,229.6 L313.0,173.3 L441.5,116.9 L570.0,60.5"/>
+<circle class="dot dot-other" cx="88.1" cy="271.9" r="4"><title>Multi-head, 20 KV heads, 2,048 tokens: 0.25 GB</title></circle>
+<circle class="dot dot-other" cx="120.2" cy="257.8" r="4"><title>Multi-head, 20 KV heads, 4,096 tokens: 0.50 GB</title></circle>
+<circle class="dot dot-other" cx="184.5" cy="229.6" r="4"><title>Multi-head, 20 KV heads, 8,192 tokens: 1.01 GB</title></circle>
+<circle class="dot dot-other" cx="313.0" cy="173.3" r="4"><title>Multi-head, 20 KV heads, 16,384 tokens: 2.01 GB</title></circle>
+<circle class="dot dot-other" cx="441.5" cy="116.9" r="4"><title>Multi-head, 20 KV heads, 24,576 tokens: 3.02 GB</title></circle>
+<circle class="dot dot-other" cx="570.0" cy="60.5" r="4"><title>Multi-head, 20 KV heads, 32,768 tokens: 4.03 GB</title></circle>
+<text class="value" x="580.0" y="64.5">Multi-head: 4.03 GB</text>
+<path class="line " d="M56.0,286.0 L88.1,283.2 L120.2,280.4 L184.5,274.7 L313.0,263.5 L441.5,252.2 L570.0,240.9"/>
+<circle class="dot " cx="88.1" cy="283.2" r="4"><title>Grouped-query, 4 KV heads (ours), 2,048 tokens: 0.05 GB</title></circle>
+<circle class="dot " cx="120.2" cy="280.4" r="4"><title>Grouped-query, 4 KV heads (ours), 4,096 tokens: 0.10 GB</title></circle>
+<circle class="dot " cx="184.5" cy="274.7" r="4"><title>Grouped-query, 4 KV heads (ours), 8,192 tokens: 0.20 GB</title></circle>
+<circle class="dot " cx="313.0" cy="263.5" r="4"><title>Grouped-query, 4 KV heads (ours), 16,384 tokens: 0.40 GB</title></circle>
+<circle class="dot " cx="441.5" cy="252.2" r="4"><title>Grouped-query, 4 KV heads (ours), 24,576 tokens: 0.60 GB</title></circle>
+<circle class="dot " cx="570.0" cy="240.9" r="4"><title>Grouped-query, 4 KV heads (ours), 32,768 tokens: 0.81 GB</title></circle>
+<text class="value" x="580.0" y="244.9">Grouped-query: 0.81 GB</text>
+<path class="line line-2" d="M56.0,286.0 L88.1,285.3 L120.2,284.6 L184.5,283.2 L313.0,280.4 L441.5,277.5 L570.0,274.7"/>
+<circle class="dot dot-2" cx="88.1" cy="285.3" r="4"><title>Multi-query, 1 KV head, 2,048 tokens: 0.01 GB</title></circle>
+<circle class="dot dot-2" cx="120.2" cy="284.6" r="4"><title>Multi-query, 1 KV head, 4,096 tokens: 0.03 GB</title></circle>
+<circle class="dot dot-2" cx="184.5" cy="283.2" r="4"><title>Multi-query, 1 KV head, 8,192 tokens: 0.05 GB</title></circle>
+<circle class="dot dot-2" cx="313.0" cy="280.4" r="4"><title>Multi-query, 1 KV head, 16,384 tokens: 0.10 GB</title></circle>
+<circle class="dot dot-2" cx="441.5" cy="277.5" r="4"><title>Multi-query, 1 KV head, 24,576 tokens: 0.15 GB</title></circle>
+<circle class="dot dot-2" cx="570.0" cy="274.7" r="4"><title>Multi-query, 1 KV head, 32,768 tokens: 0.20 GB</title></circle>
+<text class="value" x="580.0" y="278.7">Multi-query: 0.20 GB</text>
+</svg>

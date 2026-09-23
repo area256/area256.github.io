@@ -1,0 +1,37 @@
+<svg class="chart" viewBox="0 0 760 330" role="img" aria-labelledby="activation-memory-agains-t activation-memory-agains-d">
+<title id="activation-memory-agains-t">Activation memory against sequence length</title>
+<desc id="activation-memory-agains-d">Estimated activation memory for our 24-layer model with 4 sequences per micro-batch. With FlashAttention it grows linearly, from 2.1 GB at 512 tokens to 34 GB at 8,192. Storing the attention matrix adds a term that grows with the square of sequence length: 49 GB at 2,048 tokens and 678 GB at 8,192. After 7.8 GB of weights, gradients and optimizer state, a 32 GB GPU has about 24 GB left.</desc>
+<text class="axis-label" x="70" y="16">activation memory for a micro-batch of 4 sequences, log scale</text>
+<line class="grid" x1="70" x2="610" y1="286.0" y2="286.0"/>
+<text class="tick" x="62" y="290.0" text-anchor="end">1 GB</text>
+<line class="grid" x1="70" x2="610" y1="202.0" y2="202.0"/>
+<text class="tick" x="62" y="206.0" text-anchor="end">10 GB</text>
+<line class="grid" x1="70" x2="610" y1="118.0" y2="118.0"/>
+<text class="tick" x="62" y="122.0" text-anchor="end">100 GB</text>
+<line class="grid" x1="70" x2="610" y1="34.0" y2="34.0"/>
+<text class="tick" x="62" y="38.0" text-anchor="end">1,000 GB</text>
+<text class="tick" x="70.0" y="306" text-anchor="middle">512</text>
+<text class="tick" x="205.0" y="306" text-anchor="middle">1,024</text>
+<text class="tick" x="340.0" y="306" text-anchor="middle">2,048</text>
+<text class="tick" x="475.0" y="306" text-anchor="middle">4,096</text>
+<text class="tick" x="610.0" y="306" text-anchor="middle">8,192</text>
+<text class="axis-label" x="610" y="324" text-anchor="end">sequence length, tokens</text>
+<line class="ref" x1="70" x2="610" y1="169.8" y2="169.8"/>
+<text class="note" x="76" y="163.8">24 GB free</text>
+<path class="line line-other" d="M70.0,229.9 L205.0,188.8 L340.0,144.2 L475.0,96.9 L610.0,48.2"/>
+<path class="line" d="M70.0,258.3 L205.0,233.0 L340.0,207.7 L475.0,182.4 L610.0,157.1"/>
+<circle class="dot dot-other" cx="70.0" cy="229.9" r="4"><title>512 tokens, attention matrix stored: 4.7 GB</title></circle>
+<circle class="dot dot-other" cx="205.0" cy="188.8" r="4"><title>1,024 tokens, attention matrix stored: 14.3 GB</title></circle>
+<circle class="dot dot-other" cx="340.0" cy="144.2" r="4"><title>2,048 tokens, attention matrix stored: 48.8 GB</title></circle>
+<circle class="dot dot-other" cx="475.0" cy="96.9" r="4"><title>4,096 tokens, attention matrix stored: 178 GB</title></circle>
+<circle class="dot dot-other" cx="610.0" cy="48.2" r="4"><title>8,192 tokens, attention matrix stored: 678 GB</title></circle>
+<circle class="dot" cx="70.0" cy="258.3" r="4"><title>512 tokens, FlashAttention: 2.1 GB</title></circle>
+<circle class="dot" cx="205.0" cy="233.0" r="4"><title>1,024 tokens, FlashAttention: 4.3 GB</title></circle>
+<circle class="dot" cx="340.0" cy="207.7" r="4"><title>2,048 tokens, FlashAttention: 8.6 GB</title></circle>
+<circle class="dot" cx="475.0" cy="182.4" r="4"><title>4,096 tokens, FlashAttention: 17.1 GB</title></circle>
+<circle class="dot" cx="610.0" cy="157.1" r="4"><title>8,192 tokens, FlashAttention: 34.2 GB</title></circle>
+<text class="value" x="618.0" y="52.2">attention matrix stored</text>
+<text class="value" x="618.0" y="161.1">FlashAttention</text>
+<text class="note-strong" x="340.0" y="227.7" text-anchor="middle">our run: 8.6 GB</text>
+<text class="note" x="332.0" y="134.2" text-anchor="end">49 GB</text>
+</svg>

@@ -472,6 +472,7 @@ kbd {
 .chart .leader { stroke: var(--muted); stroke-width: 1; }
 .chart .line-thin { stroke-width: 1.5; }
 .chart .line-2 { stroke: var(--chart-2); }
+.chart .line-other { stroke: var(--muted); }
 .chart .line-gap { stroke-dasharray: 1 4; }
 .chart .dot-2 { fill: var(--chart-2); }
 .chart .dot-other { fill: var(--muted); }
@@ -562,6 +563,7 @@ kbd {
 }
 
 .legend-key.k-2 { border-top-color: var(--chart-2); }
+.legend-key.k-other-line { border-top-color: var(--muted); }
 .legend-key.k-other { width: 0.5rem; height: 0.5rem; border: 0; border-radius: 50%; background: var(--muted); }
 .legend-key.k-chance { border-top: 1px dashed var(--muted); }
 .legend-key.k-target { border-top: 1.5px solid var(--chart-2); }
