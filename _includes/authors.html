@@ -1,6 +1,11 @@
-{%- comment -%} Renders "A", "A and B", or "A, B, and C" from a list of keys in _data/authors.yml. {%- endcomment -%}
+{%- comment -%}
+  Renders authors from a list of keys in _data/authors.yml: "A", "A and B", or "A, B, and C".
+  With list=true, renders a plain comma list instead: "A, B, C".
+{%- endcomment -%}
 {%- for id in include.ids -%}
   {%- assign a = site.data.authors[id] -%}
-  {%- unless forloop.first -%}{%- if forloop.last -%}{%- if forloop.length > 2 -%},{%- endif %} and {% else %}, {% endif -%}{%- endunless -%}
+  {%- unless forloop.first -%}
+    {%- if include.list or forloop.last == false %}, {% else -%}{%- if forloop.length > 2 -%},{%- endif %} and {% endif -%}
+  {%- endunless -%}
   {%- if a.url -%}<a href="{{ a.url }}">{{ a.name }}</a>{%- else -%}{{ a.name | default: id }}{%- endif -%}
 {%- endfor -%}
