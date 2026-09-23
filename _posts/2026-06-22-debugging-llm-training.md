@@ -25,7 +25,7 @@ Language models raise the stakes in two ways. Each attempt is expensive: one pha
 
 ## Check the model and the loss
 
-**Know what the loss should be at step 0.** A freshly initialized model should be close to guessing uniformly, so its loss should be about the natural log of the vocabulary size. With our 32,000-token vocabulary that's ln(32,000) ≈ 10.37. A much higher starting loss usually means the output layer's initialization is off; a much lower one can mean the model is seeing the answer. We only started logging at step 10, where the loss was already 8.82, so we can't show our own step-0 value. Log it.
+**Know what the loss should be at step 0.** A freshly initialized model should be close to guessing uniformly, so its loss should be about the natural log of the vocabulary size. Hugging Face's [LLM course](https://huggingface.co/learn/llm-course/en/chapter8/4) makes the same point for classifiers: work out the loss of random guessing and compare. With our 32,000-token vocabulary that's ln(32,000) ≈ 10.37. A much higher starting loss usually means the output layer's initialization is off; a much lower one can mean the model is seeing the answer. We only started logging at step 10, where the loss was already 8.82, so we can't show our own step-0 value. Log it.
 
 **Test that the model can't see the future.** An autoregressive model must predict each token from earlier tokens only. If the attention mask leaks, training loss looks wonderful and the model is useless at generation. Karpathy suggests checking this with gradients: the gradient of an output should only reach inputs it is allowed to depend on. Our test does the same check more simply: change the last token and confirm no earlier prediction moves.
 
@@ -44,13 +44,15 @@ def test_causal_masking():
 
 The related bug is an off-by-one in the targets. Each target should be the input shifted left by one token. If inputs and targets line up exactly, the model only has to copy its input, and the loss falls far below anything plausible almost immediately.
 
-**Overfit a single batch.** Every guide we read agrees on this one. A model that can't drive its loss to near zero on one repeated batch has a bug in the model, the loss, or the optimizer step. Pierce Freeman's [debugging tips](https://pierce.dev/notes/debugging-tips-for-neural-network-training) suggest building up from one example to two, then five, so you see the capacity you expect before you scale up.
+**Overfit a single batch.** Every guide we read agrees on this one. A model that can't drive its loss to near zero on one repeated batch has a bug in the model, the loss, or the optimizer step. Pierce Freeman's [debugging tips](https://pierce.dev/notes/debugging-tips-for-neural-network-training) suggest building up from one example to two, then five, so you see the capacity you expect before you scale up. The LLM course adds a practical warning: throw the model away afterwards and build a fresh one, or your real run starts from weights that have memorized one batch.
 
 **Scale the initialization with depth.** Each transformer block adds its output to a running sum, so with standard initialization the sum grows with the number of layers. GPT-2 and Karpathy's [build-nanogpt](https://github.com/karpathy/build-nanogpt) shrink the initial weights of each block's output projection by 1/√(2 × layers) to compensate; we do the same, giving 0.02/√48 for our 24 layers. The BLOOM team found the usual 0.02 standard deviation too large at 100B+ parameters and used a much smaller value, as described in Stas Bekman's [ML Engineering](https://github.com/stas00/ml-engineering) book. [Takase et al.](https://arxiv.org/abs/2312.16903) show the other side: if the embeddings start too small relative to the rest, normalization layers amplify their gradients and training spikes. Scaling the embeddings up, or normalizing them, fixed it.
 
 **Be deliberate about weight decay.** Weight decay on normalization gains and biases pulls them toward zero for no benefit. Our optimizer decays only weight matrices. OLMo 2 goes further and also leaves the embeddings undecayed. Either way, print the parameter groups once and check each parameter landed where you meant.
 
 **Write it twice and compare.** Freeman's tip is to write a slow, obvious version of any tricky tensor code next to the fast one and check they agree. We used the same idea when converting checkpoints to the Hugging Face Llama format for evaluation: the export script runs both models on the same random tokens and fails if their outputs differ. The largest difference was 0.0039, which is bf16 rounding noise. Without that check, a transposed weight would have quietly lowered every benchmark score.
+
+A check like ours tells you *that* two implementations differ, not *where*. For that, Transformers has [`model_addition_debugger_context`](https://huggingface.co/docs/transformers/en/internal/model_debugging_utils), written for people porting models into the library. Wrap one forward pass in it and it records the shape, dtype, mean, standard deviation, minimum and maximum of every module's inputs and outputs in a JSON file, optionally with the full tensors saved alongside. Trace both implementations on the same input and compare the files: the first module whose numbers disagree is where to look. By default it keeps only the first and last layers; pass `do_prune_layers=False` to record all of them.
 
 ## Check the training loop
 
@@ -63,6 +65,10 @@ The related bug is an off-by-one in the targets. Each target should be the input
 **Use bf16 rather than fp16.** fp16 can't represent large values, and a single overflow turns the loss into NaN. fp16 training needs a loss scaler, which our loop enables only when fp16 is selected. The BLOOM team credits much of their final run's stability to switching to bf16 after their earlier fp16 attempts diverged, and the [MIT course checklist](https://mit-mi.github.io/how2ai-course/spring2025/schedule/Debugging%20Tips.pdf) gives the same advice for anyone seeing NaNs.
 
 **Log gradient norms before clipping.** Clipping caps the gradient norm, so a norm logged after clipping can never show you a problem above the cap. Google's [Deep Learning Tuning Playbook](https://github.com/google-research/tuning_playbook) suggests logging the unclipped norm and setting the clip threshold around the 90th percentile of what you observe. If most steps are clipped, the clip is doing the job the learning rate should be doing.
+
+**Run every code path once before the long run.** A crash in the evaluation code or in checkpoint saving usually shows up only when that code first runs, which may be hours in. The LLM course recommends running evaluation on its own before training starts, and more generally walking through the pipeline in the order the trainer does: one item from the dataset, decoded; one batch from the loader; a forward pass; the loss; a backward pass; one optimizer step. Only then start the full run. The same logic applies to anything that happens on a schedule. Evaluate, sample, save a checkpoint and load it back in the first few minutes, not for the first time at step 2,000.
+
+**Reproduce confusing GPU errors on the CPU.** CUDA runs asynchronously, so an error is often reported by a later operation than the one that caused it, with an unhelpful message. The LLM course's advice is to move the model and one batch to the CPU and run the same step there, where the error points at the real line. Our unit tests all run a tiny model on the CPU for the same reason: they're fast, and when they fail they fail clearly.
 
 ## Log more than the loss
 
@@ -84,6 +90,18 @@ In our run these stayed quiet. There were no non-finite gradients in 4,000 steps
 None of these needed action this time. That's the point: they cost almost nothing to log, and if something had gone wrong they would have shown where.
 
 Throughput is worth watching too. It isn't a model metric, but a drop usually means something else is wrong. Our run held 85% of the GPU's peak throughput throughout. In the Smol Training Playbook, drops in throughput lined up with spikes in disk read latency.
+
+## Track down NaNs and overflows
+
+A non-finite value tells you that something broke, but not where. The Transformers [debugging guide](https://huggingface.co/docs/transformers/en/debugging) describes a tool for that, `DebugUnderflowOverflow`. With the Trainer you turn it on with `debug="underflow_overflow"`; in your own loop you wrap the model in it. It hooks every module's forward pass, checks inputs, outputs and weights, and when it finds an inf or NaN it stops and prints the last several modules it ran, each with the smallest and largest absolute values it saw. Reading back up that list shows where values started to grow.
+
+The guide's worked example is a T5 model training in fp16. The largest value coming out of one feed-forward block was about 62,700. fp16 can't represent anything above 65,504, and the dropout that followed scales its surviving values up, which pushed them past the limit. Its fixes are to run that one block in fp32 by switching autocast off inside it, or to turn mixed precision off entirely. When the problem is inside a module rather than between modules, a companion function, `detect_overflow`, can be dropped in after any intermediate step.
+
+Two options help when the failure comes later in training. `trace_batch_nums` records those same minimum and maximum values for chosen batches even when nothing has overflowed yet, so you can compare a batch just before the failure with one from much earlier and see which layer drifts first. `abort_after_batch_num` stops the run once you have what you need.
+
+The same guide explains a NaN that catches many people out: a model pretrained in bf16, as many TPU-trained models were, often overflows when run or fine-tuned in fp16, because its activations were never kept inside fp16's range. Use bf16 or fp32 for it instead. bf16 has the same range as fp32, which is why overflows like the T5 one largely disappear with it. What bf16 gives up is precision.
+
+We never needed this tool, because our non-finite count stayed at zero, but it's the next step if that count ever goes above zero.
 
 ## Understand loss spikes
 
@@ -135,13 +153,25 @@ The first three rows show the usual progression: pure repetition, then fluent se
 
 **Plan for hardware failure.** Most of OPT's early restarts came from hardware problems, not modeling ones. At our scale the equivalent is simpler but just as real. Our rented machine's disk disappears when the instance is destroyed, so we copied the phase 1 weights to another machine as soon as it finished. We ran training inside tmux so a dropped SSH connection wouldn't kill it. And we checked that there was enough free disk space before starting a phase, since running out mid-save can corrupt the checkpoint you most need.
 
+## Debug the distributed setup
+
+Our run used a single GPU, so this section is what we'd check first rather than what we saw. Distributed training adds failure modes that have nothing to do with the model.
+
+**Test communication on its own.** Before debugging a multi-GPU training script, check that the GPUs can talk to each other at all. The Transformers debugging guide links a small script, `torch-distributed-gpu-test.py`, that you launch the same way as your training job; it prints OK for each process that can communicate and allocate memory. Setting `NCCL_DEBUG=INFO` makes the communication library log what it's doing, which is usually enough to spot a wrong network interface or a failed connection.
+
+**Catch shape mismatches before they hang.** Collective operations like gather and reduce expect every process to contribute a tensor of the same shape. If one process sends something different, the job doesn't fail; it waits, and the only symptom is a timeout, often many minutes later. Accelerate's [debug mode](https://huggingface.co/docs/accelerate/main/en/usage_guides/debug), turned on with `accelerate launch --debug` or `ACCELERATE_DEBUG_MODE=1`, checks shapes across processes before each such operation and raises an error that lists every process's shape instead. It costs very little, so it's worth leaving on while a new setup is being brought up.
+
+**Check that every rank does the same number of steps.** A related hang in hand-written loops comes from one process skipping or adding a step, for example because its share of the data ran out first. The processes then wait at different synchronization points. Sampling random windows, as our loader does, sidesteps this because no process can run out.
+
+**Rule out the framework.** For DeepSpeed, the Transformers guide's first advice is to rerun without it: if the error goes away, it's in the DeepSpeed setup, not the model. Two of its specific notes are worth remembering. A process that dies at startup with no traceback has usually been killed by the operating system for using too much CPU memory, often because optimizer or parameter offloading to the CPU is switched on. And repeated `OVERFLOW!` messages in fp16 mean the loss scaler can't find a workable scale; the guide suggests a higher starting scale.
+
 ## Match the symptom to the cause
 
 The MIT checklist and Josh Tobin's [Troubleshooting Deep Neural Networks](http://josh-tobin.com/troubleshooting-deep-neural-networks.html) both map what you see in the curves to the likely cause. Adapted for pretraining, with what we added from the sources above:
 
 | What you see | Likely cause | First thing to try |
 |---|---|---|
-| Loss becomes NaN | Overflow in fp16, bad input, or uninitialized weights | Switch to bf16; check the batch and the weights for NaNs |
+| Loss becomes NaN | Overflow in fp16, bad input, or uninitialized weights | Find the first module with an inf or NaN; switch to bf16; check the batch and the weights |
 | Loss rises from the start | A sign error in the loss or the update | Test the loss on inputs with a known answer |
 | Loss barely moves | Learning rate too low, or the model isn't getting the gradient | Raise the learning rate; check gradient norms per layer |
 | Loss is noisy or climbing | Learning rate too high | Lower it; add gradient clipping; lengthen warmup |
@@ -149,6 +179,9 @@ The MIT checklist and Josh Tobin's [Troubleshooting Deep Neural Networks](http:/
 | Gradient norm drifting upward | The run is edging toward instability | Lower the learning rate before the loss reacts |
 | Loss jumps after resuming | Optimizer state or data position not restored | Check what the checkpoint actually contains |
 | Throughput drops | Data loading or disk, not the model | Check disk and loader latency |
+| Unclear CUDA error | The asynchronous GPU reported a later operation | Rerun the same step on the CPU |
+| Multi-GPU job hangs until a timeout | Tensor shapes differ across processes, ranks are out of step, or the network is misconfigured | Turn on Accelerate's debug mode; run the communication test with `NCCL_DEBUG=INFO` |
+| Process killed at startup with no traceback | Out of CPU memory, often from offloading | Turn off CPU offloading or estimate memory first |
 | Training loss far below validation | Overfitting, which in pretraining usually means too many passes over the data | More data, or fewer epochs |
 | Validation loss suspiciously low | The validation data leaked into training, or the targets aren't shifted | Deduplicate across the split; check the target offset |
 
@@ -177,19 +210,22 @@ Model and loss:
 - Changing a future token doesn't change earlier predictions, and targets are shifted by one.
 - The model drives its loss to near zero on one batch.
 - Output projections are scaled down with depth, and the parameter groups for weight decay are what you intended.
-- Anything written twice, such as a checkpoint conversion, gives matching outputs.
+- Anything written twice, such as a checkpoint conversion, gives matching outputs; if not, trace both to find the first layer that differs.
+- After the overfitting test, the real run starts from a fresh model.
 
 Training loop:
 
 - Gradient accumulation weights each micro-batch by its share of tokens.
 - Each GPU has its own random stream, and runs are repeatable from a seed.
 - Training uses bf16, and gradient norms are logged before clipping.
+- Evaluation, sampling, and saving and reloading a checkpoint have all run once in the first few minutes.
+- For multi-GPU runs, the communication test passes and shape checks are on while the setup is new.
 
 During the run:
 
 - Log per-layer gradient norms, update sizes, output-logit size and non-finite counts, not just the loss.
 - Generate from fixed prompts on a schedule and read the output.
-- Know in advance how you'll respond to a loss spike.
+- Know in advance how you'll respond to a loss spike, and which tool you'll reach for if a NaN appears.
 - Before reacting to a change in the curves, ask whether you caused it.
 
 Evaluation and long runs:
@@ -226,6 +262,13 @@ Papers:
 - Mitchell Wortsman et al., [Small-scale proxies for large-scale Transformer training instabilities](https://arxiv.org/abs/2309.14322), 2023.
 - Sho Takase, Shun Kiyono, Sosuke Kobayashi and Jun Suzuki, [Spike No More: Stabilizing the Pre-training of Large Language Models](https://arxiv.org/abs/2312.16903), 2023.
 - Sander Land and Max Bartolo, [Fishing for Magikarp: Automatically Detecting Under-trained Tokens in Large Language Models](https://arxiv.org/abs/2405.05417), 2024.
+
+Hugging Face documentation:
+
+- [Debugging](https://huggingface.co/docs/transformers/en/debugging), Transformers documentation. Earlier versions, such as [v4.13](https://huggingface.co/docs/transformers/v4.13.0/en/debugging) and [v4.49](https://huggingface.co/docs/transformers/v4.49.0/en/debugging), cover the same overflow tools.
+- [Model debugging toolboxes](https://huggingface.co/docs/transformers/en/internal/model_debugging_utils), Transformers documentation.
+- [Debugging the training pipeline](https://huggingface.co/learn/llm-course/en/chapter8/4), Hugging Face LLM course, chapter 8.
+- [Debugging distributed operations](https://huggingface.co/docs/accelerate/main/en/usage_guides/debug), Accelerate documentation.
 
 Bug reports:
 

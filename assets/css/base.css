@@ -316,6 +316,13 @@ pre code {
   background: none;
 }
 
+/* Code names must never be hyphenated by the justified prose around them. */
+code,
+kbd {
+  -webkit-hyphens: manual;
+  hyphens: manual;
+}
+
 /* Tables span the column so consecutive tables line up; on phones they
    scroll inside their own box instead of widening the page. */
 .prose table {
