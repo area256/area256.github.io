@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    {% include head-meta.html %}
+
+    <link rel="stylesheet" href="{{ '/assets/css/base.css' | relative_url }}">
+
+    {%- comment -%} Apply a stored light/dark choice before first paint so the page never flashes the other scheme. {%- endcomment %}
+    <script>
+    try {
+      var t = localStorage.getItem('theme');
+      if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+    } catch (e) {}
+    </script>
+
+    {%- comment -%} MathJax is ~1 MB; load it only on pages that set `math: true` in front matter. {%- endcomment %}
+    {% if page.math %}
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    {% endif %}
+</head>
+<body>
+    <div class="page">
+        {% include nav.html %}
+
+        <main class="content">
+            {{ content }}
+        </main>
+
+        {% include footer.html %}
+    </div>
+
+    <script>
+    (function () {
+      var toggle = document.getElementById('theme-toggle');
+      if (!toggle) return;
+      var root = document.documentElement;
+
+      function current() {
+        var set = root.getAttribute('data-theme');
+        if (set) return set;
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+
+      toggle.addEventListener('click', function () {
+        var next = current() === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        try { localStorage.setItem('theme', next); } catch (e) {}
+      });
+    })();
+    </script>
+</body>
+</html>

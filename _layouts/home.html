@@ -1,0 +1,22 @@
+---
+layout: default
+---
+<section class="post-index">
+    <div class="prose intro">{{ content }}</div>
+
+    {% assign years = site.posts | group_by_exp: "p", "p.date | date: '%Y'" %}
+    {% for year in years %}
+    <h2 class="index-year">{{ year.name }}</h2>
+    <ul class="posts">
+        {% for post in year.items %}
+        <li>
+            <time datetime="{{ post.date | date: '%Y-%m-%d' }}">{{ post.date | date: '%b %-d' }}</time>
+            <div>
+                <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+                {% if post.authors %}<span class="post-by">{% include authors.html ids=post.authors %}</span>{% endif %}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endfor %}
+</section>

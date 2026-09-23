@@ -1,10 +1,5 @@
 ---
-layout: default
-title: area256
+layout: home
 ---
 
-# area256
-
-Experiments in training language models from scratch.
-
-[github.com/area256 →](https://github.com/area256)
+Notes from area256 on training language models from scratch: what we ran, what it cost, and what we learned.

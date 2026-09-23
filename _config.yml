@@ -1,3 +1,28 @@
 title: area256
-description: Experiments in training language models from scratch.
-theme: jekyll-theme-minimal
+description: Notes from area256 on training language models from scratch.
+url: https://area256.github.io
+author: area256
+github: area256
+
+permalink: /:year/:title/
+markdown: kramdown
+kramdown:
+  input: GFM
+
+plugins:
+  - jekyll-feed
+
+feed:
+  path: feed.xml
+
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+
+defaults:
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: post
