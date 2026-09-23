@@ -82,17 +82,28 @@ We ran every model through the same [lm-evaluation-harness](https://github.com/E
 <figcaption>Average zero-shot accuracy on nine tasks against training tokens, on a log scale. Pythia-410M was only measured at the three points shown; the dotted line just joins them. At 1.07B tokens, Pythia-1B and Pythia-410M score almost the same (0.298 and 0.299), so their dots overlap.</figcaption>
 </figure>
 
-<details markdown="1">
-<summary>Show the numbers</summary>
+<figure class="wide">
+<div class="chart-scroll">
+{% include charts/llm-0.5b-benchmark-bars.svg %}
+</div>
+<figcaption>Every model we measured, sorted by score. Filled bars are ours. The gap between our best and the fully trained Pythia-410M is the cost of 72 times less data; the gap from there to SmolLM2 is mostly what data selection buys.</figcaption>
+</figure>
 
-| Model | Training tokens | Zero-shot average |
-|---|--:|--:|
-| SmolLM2-360M | 4T | 0.587 |
-| Qwen2.5-0.5B | 18T | 0.565 |
-| Pythia-410M | 300B | 0.493 |
-| **Ours** | **4.19B** | **0.445** |
-| Pythia-410M | 2.1B | 0.348 |
-| Pythia-1B | 1.07B | 0.298 |
+<details markdown="1">
+<summary>Show every task for every model</summary>
+
+| Model | Tokens | Avg | LAMBADA | SciQ | ARC-Easy | BoolQ | PIQA | OpenBookQA | HellaSwag | WinoGrande | ARC-Challenge | WikiText ppl |
+|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|
+| **Ours** | **4.19B** | **0.445** | 0.230 | 0.660 | 0.458 | 0.621 | 0.628 | 0.312 | 0.326 | 0.502 | 0.265 | 42.1 |
+| Ours, weight-averaged | 4.19B | 0.443 | 0.228 | 0.655 | 0.460 | 0.621 | 0.631 | 0.312 | 0.321 | 0.495 | 0.265 | 42.5 |
+| Pythia-410M | 1.07B | 0.299 | 0.000 | 0.246 | 0.285 | 0.386 | 0.523 | 0.268 | 0.251 | 0.495 | 0.237 | 974.8 |
+| Pythia-1B | 1.07B | 0.297 | 0.000 | 0.261 | 0.294 | 0.379 | 0.522 | 0.268 | 0.252 | 0.493 | 0.208 | 598.1 |
+| Pythia-410M | 2.1B | 0.348 | 0.038 | 0.415 | 0.295 | 0.597 | 0.534 | 0.250 | 0.260 | 0.516 | 0.222 | 172.4 |
+| Pythia-410M | 300B | 0.493 | 0.479 | 0.735 | 0.458 | 0.598 | 0.675 | 0.300 | 0.406 | 0.538 | 0.247 | 20.8 |
+| SmolLM2-360M | 4T | 0.587 | 0.539 | 0.857 | 0.656 | 0.616 | 0.725 | 0.370 | 0.564 | 0.588 | 0.365 | 15.8 |
+| Qwen2.5-0.5B | 18T | 0.565 | 0.519 | 0.906 | 0.584 | 0.622 | 0.697 | 0.352 | 0.522 | 0.565 | 0.319 | — |
+
+Qwen2.5-0.5B has no WikiText figure: its 152,000-token vocabulary ran out of GPU memory on that task's long rolling windows while training was using the same card, so we re-ran it without WikiText rather than interrupt the run.
 
 </details>
 
@@ -101,6 +112,22 @@ At a matched 2.1B tokens, we scored 8.5 points above Pythia-410M. Finishing at 4
 SmolLM2-360M beats Qwen2.5-0.5B with fewer parameters and less than a quarter of the tokens. That gap comes from how its training data was chosen and mixed. We haven't worked on data selection at all yet, so it's the most promising next step once tokens stop being the bottleneck.
 
 On MMLU (5-shot) the model finished at 0.272, up from 0.254 at half the tokens. Chance is 0.25 on a four-way multiple choice, so this is the first sign of that kind of knowledge appearing, and not much more than a sign: social sciences carries it at 0.320 while humanities is still at chance. We leave MMLU out of the average.
+
+<details markdown="1">
+<summary>Show MMLU by category</summary>
+
+| MMLU, 5-shot | At 2.10B tokens | At 4.19B tokens | Change |
+|---|--:|--:|--:|
+| All 57 subjects | 0.254 | 0.272 | +0.018 |
+| STEM | 0.272 | 0.273 | +0.002 |
+| Social sciences | 0.256 | 0.320 | +0.064 |
+| Other | 0.260 | 0.258 | -0.002 |
+| Humanities | 0.236 | 0.248 | +0.012 |
+| *Chance* | *0.250* | *0.250* | |
+
+Nearly all of the movement is in social sciences. The other three categories are still within a point or two of chance, which is what you would expect from a model this size trained on this little.
+
+</details>
 
 ## Restarting the learning-rate schedule has a cost
 
@@ -134,14 +161,19 @@ Both phases finished well ahead, so both restarts were worth doing. But together
 <details markdown="1">
 <summary>Show the numbers</summary>
 
-| Task | 262M tokens | 524M | 786M | 1.05B | 2.10B | 4.19B |
+| Task | 262M | 524M | 786M | 1.05B | 2.10B | 4.19B |
 |---|--:|--:|--:|--:|--:|--:|
 | LAMBADA | 0.021 | 0.107 | 0.141 | 0.151 | 0.212 | 0.230 |
 | SciQ | 0.397 | 0.573 | 0.580 | 0.610 | 0.628 | 0.660 |
 | ARC-Easy | 0.332 | 0.387 | 0.404 | 0.415 | 0.447 | 0.458 |
+| BoolQ | 0.423 | 0.588 | 0.620 | 0.621 | 0.622 | 0.621 |
 | PIQA | 0.545 | 0.573 | 0.589 | 0.594 | 0.614 | 0.628 |
+| OpenBookQA | 0.254 | 0.282 | 0.278 | 0.280 | 0.304 | 0.312 |
 | HellaSwag | 0.260 | 0.270 | 0.277 | 0.282 | 0.298 | 0.326 |
+| WinoGrande | 0.489 | 0.535 | 0.515 | 0.524 | 0.520 | 0.502 |
 | ARC-Challenge | 0.232 | 0.224 | 0.231 | 0.233 | 0.249 | 0.265 |
+| **Average** | **0.328** | **0.393** | **0.404** | **0.412** | **0.433** | **0.445** |
+| WikiText perplexity | 185.2 | 86.7 | 68.1 | 62.1 | 49.5 | 42.1 |
 
 </details>
 
@@ -155,11 +187,37 @@ Phase 3 also kept an exponential moving average of the weights, on the usual rea
 
 The reason makes sense in hindsight. Averaging helps when training ends while the learning rate is still high and the weights are still being jostled around. This run ends at 1e-5 after a full cosine decay, so the last thousand steps are already taking tiny, quiet steps. The decay had done the averaging already. The two techniques are substitutes, not complements.
 
+<details markdown="1">
+<summary>Show the head-to-head</summary>
+
+| | Final weights | Weight-averaged | Difference |
+|---|--:|--:|--:|
+| **Average accuracy** | **0.4448** | 0.4430 | -0.0018 |
+| LAMBADA | 0.230 | 0.228 | -0.002 |
+| SciQ | 0.660 | 0.655 | -0.005 |
+| ARC-Easy | 0.458 | 0.460 | +0.003 |
+| BoolQ | 0.621 | 0.621 | -0.000 |
+| PIQA | 0.628 | 0.631 | +0.003 |
+| OpenBookQA | 0.312 | 0.312 | +0.000 |
+| HellaSwag | 0.326 | 0.321 | -0.006 |
+| WinoGrande | 0.502 | 0.495 | -0.007 |
+| ARC-Challenge | 0.265 | 0.265 | -0.001 |
+| WikiText perplexity | 42.13 | 42.53 | +0.39 |
+
+</details>
+
 So: if you can afford to decay the learning rate properly, do that and skip the averaging. Keep it for runs that end while the rate is still high, which is what happens with a constant-rate schedule, an early stop, or a budget that runs out mid-decay. Finding this out cost one gigabyte of disk and no measurable training time, which is a fair price for knowing.
 
 ## Training health
 
 We also logged per-layer gradient norms, activation sizes, and prediction entropy throughout. None of them needed action this time, but each would have caught a problem long before it showed up in the loss curve.
+
+<figure class="wide">
+<div class="chart-scroll">
+{% include charts/llm-0.5b-gradnorm.svg %}
+</div>
+<figcaption>The global gradient norm, measured before clipping, with the clipped steps marked. Clipping only ever bound early: 21 steps in total, the last at step 540, and never again across the remaining 7,460.</figcaption>
+</figure>
 
 <figure class="wide">
 <div class="chart-scroll">

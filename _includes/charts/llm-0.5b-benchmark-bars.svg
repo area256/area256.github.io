@@ -1,0 +1,53 @@
+<svg class="chart" viewBox="0 0 760 330" role="img" aria-labelledby="every-model-compared-t every-model-compared-d">
+<title id="every-model-compared-t">Every model compared</title>
+<desc id="every-model-compared-d">Average zero-shot accuracy for every model measured, sorted low to high. Our checkpoints are the filled bars: 0.412 at 1.05B tokens, 0.433 at 2.10B and 0.445 at 4.19B, with the weight-averaged version just behind at 0.443. Pythia-410M scores 0.348 at a matched 2.1B tokens and 0.493 fully trained; SmolLM2-360M leads at 0.587.</desc>
+<text class="axis-label" x="46" y="16">average zero-shot accuracy, 9 tasks</text>
+<line class="grid" x1="46" x2="740" y1="268.0" y2="268.0"/>
+<text class="tick" x="38" y="272.0" text-anchor="end">0.0</text>
+<line class="grid" x1="46" x2="740" y1="192.5" y2="192.5"/>
+<text class="tick" x="38" y="196.5" text-anchor="end">0.2</text>
+<line class="grid" x1="46" x2="740" y1="117.0" y2="117.0"/>
+<text class="tick" x="38" y="121.0" text-anchor="end">0.4</text>
+<line class="grid" x1="46" x2="740" y1="41.5" y2="41.5"/>
+<text class="tick" x="38" y="45.5" text-anchor="end">0.6</text>
+<rect class="bar bar-2" x="59.9" y="155.7" width="41.6" height="112.3" rx="2"><title>Pythia-1B, 1.07B tokens: 0.298</title></rect>
+<text class="value" x="80.7" y="148.7" text-anchor="middle">0.298</text>
+<text class="tick" x="80.7" y="284" text-anchor="middle">Pythia-1B</text>
+<text class="note" x="80.7" y="298" text-anchor="middle">1.07B</text>
+<rect class="bar bar-2" x="129.3" y="155.2" width="41.6" height="112.8" rx="2"><title>Pythia-410M, 1.07B tokens: 0.299</title></rect>
+<text class="value" x="150.1" y="148.2" text-anchor="middle">0.299</text>
+<text class="tick" x="150.1" y="284" text-anchor="middle">Pythia-410M</text>
+<text class="note" x="150.1" y="298" text-anchor="middle">1.07B</text>
+<rect class="bar bar-2" x="198.7" y="136.8" width="41.6" height="131.2" rx="2"><title>Pythia-410M, 2.1B tokens: 0.348</title></rect>
+<text class="value" x="219.5" y="129.8" text-anchor="middle">0.348</text>
+<text class="tick" x="219.5" y="284" text-anchor="middle">Pythia-410M</text>
+<text class="note" x="219.5" y="298" text-anchor="middle">2.1B</text>
+<rect class="bar" x="268.1" y="112.4" width="41.6" height="155.6" rx="2"><title>Ours, 1.05B tokens: 0.412</title></rect>
+<text class="value" x="288.9" y="105.4" text-anchor="middle">0.412</text>
+<text class="tick" x="288.9" y="284" text-anchor="middle">Ours</text>
+<text class="note" x="288.9" y="298" text-anchor="middle">1.05B</text>
+<rect class="bar" x="337.5" y="104.7" width="41.6" height="163.3" rx="2"><title>Ours, 2.10B tokens: 0.433</title></rect>
+<text class="value" x="358.3" y="97.7" text-anchor="middle">0.433</text>
+<text class="tick" x="358.3" y="284" text-anchor="middle">Ours</text>
+<text class="note" x="358.3" y="298" text-anchor="middle">2.10B</text>
+<rect class="bar" x="406.9" y="100.8" width="41.6" height="167.2" rx="2"><title>Ours, EMA, 4.19B tokens: 0.443</title></rect>
+<text class="value" x="427.7" y="93.8" text-anchor="middle">0.443</text>
+<text class="tick" x="427.7" y="284" text-anchor="middle">Ours, EMA</text>
+<text class="note" x="427.7" y="298" text-anchor="middle">4.19B</text>
+<rect class="bar" x="476.3" y="100.1" width="41.6" height="167.9" rx="2"><title>Ours, 4.19B tokens: 0.445</title></rect>
+<text class="value" x="497.1" y="93.1" text-anchor="middle">0.445</text>
+<text class="tick" x="497.1" y="284" text-anchor="middle">Ours</text>
+<text class="note" x="497.1" y="298" text-anchor="middle">4.19B</text>
+<rect class="bar bar-2" x="545.7" y="82.0" width="41.6" height="186.0" rx="2"><title>Pythia-410M, 300B tokens: 0.493</title></rect>
+<text class="value" x="566.5" y="75.0" text-anchor="middle">0.493</text>
+<text class="tick" x="566.5" y="284" text-anchor="middle">Pythia-410M</text>
+<text class="note" x="566.5" y="298" text-anchor="middle">300B</text>
+<rect class="bar bar-2" x="615.1" y="54.7" width="41.6" height="213.3" rx="2"><title>Qwen2.5-0.5B, 18T tokens: 0.565</title></rect>
+<text class="value" x="635.9" y="47.7" text-anchor="middle">0.565</text>
+<text class="tick" x="635.9" y="284" text-anchor="middle">Qwen2.5-0.5B</text>
+<text class="note" x="635.9" y="298" text-anchor="middle">18T</text>
+<rect class="bar bar-2" x="684.5" y="46.6" width="41.6" height="221.4" rx="2"><title>SmolLM2-360M, 4T tokens: 0.587</title></rect>
+<text class="value" x="705.3" y="39.6" text-anchor="middle">0.587</text>
+<text class="tick" x="705.3" y="284" text-anchor="middle">SmolLM2-360M</text>
+<text class="note" x="705.3" y="298" text-anchor="middle">4T</text>
+</svg>

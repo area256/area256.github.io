@@ -478,6 +478,9 @@ kbd {
 .chart .dot-other { fill: var(--muted); }
 .chart .value.value-2 { font-weight: 400; }
 .chart .chance { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.chart .bar { fill: var(--chart-line); }
+.chart .bar-2 { fill: color-mix(in srgb, var(--muted) 45%, transparent); }
+.chart .bar:hover, .chart .bar-2:hover { fill: var(--accent); }
 .chart .target { stroke: var(--chart-2); stroke-width: 1.5; }
 .chart .hit-col { fill: transparent; }
 .chart .hit-col:hover { fill: color-mix(in srgb, var(--fg) 12%, transparent); }

@@ -202,7 +202,9 @@ def accuracy_vs_tokens():
 
 # ---- 3. One small chart per benchmark ------------------------------------------
 TASKS = (("lambada_openai", "LAMBADA", None), ("sciq", "SciQ", 0.25), ("arc_easy", "ARC-Easy", 0.25),
-         ("piqa", "PIQA", 0.5), ("hellaswag", "HellaSwag", 0.25), ("arc_challenge", "ARC-Challenge", 0.25))
+         ("boolq", "BoolQ", 0.5), ("piqa", "PIQA", 0.5), ("openbookqa", "OpenBookQA", 0.25),
+         ("hellaswag", "HellaSwag", 0.25), ("winogrande", "WinoGrande", 0.5),
+         ("arc_challenge", "ARC-Challenge", 0.25))
 
 
 def per_task():
@@ -445,6 +447,83 @@ def diagnostics():
     (OUT / "llm-0.5b-diagnostics.svg").write_text(svg(W, H, "Entropy and update size", desc, o))
 
 
+def grad_norm_total():
+    """Global gradient norm before clipping, with the clipped steps marked."""
+    rows = [(int(r["step"]), float(r["grad_norm"]), r["grad_clipped"] == "1") for r in read("train_metrics.csv")]
+    W, H, L, R, T, B = 760, 250, 46, 24, 34, 44
+    X = Scale(0, rows[-1][0], L, W - R)
+    hi = max(v for _, v, _ in rows) * 1.08
+    Y = Scale(0, hi, H - B, T)
+    o = [f'<text class="axis-label" x="{L}" y="{T - 18}">global gradient norm, before clipping</text>']
+    t = 0.0
+    while t <= hi:
+        o.append(f'<line class="grid" x1="{L}" x2="{W - R}" y1="{n(Y(t))}" y2="{n(Y(t))}"/>')
+        o.append(f'<text class="tick" x="{L - 8}" y="{n(Y(t) + 4)}" text-anchor="end">{t:.0f}</text>')
+        t += 1
+    o.append(f'<line class="ref" x1="{L}" x2="{W - R}" y1="{n(Y(1))}" y2="{n(Y(1))}"/>')
+    o.append(f'<text class="note" x="{W - R - 4}" y="{n(Y(1) - 6)}" text-anchor="end">clipping threshold, 1.0</text>')
+    for s_ in (2000, 4000):
+        o.append(f'<line class="boundary" x1="{n(X(s_))}" x2="{n(X(s_))}" y1="{T}" y2="{H - B}"/>')
+    o.append(f'<path class="line line-thin" d="{path([(X(s_), Y(v)) for s_, v, _ in rows])}"/>')
+    clipped = [(s_, v) for s_, v, c in rows if c]
+    for s_, v in clipped:
+        o.append(f'<circle class="dot dot-2" cx="{n(X(s_))}" cy="{n(Y(v))}" r="3.5">'
+                 f'<title>Step {s_}: gradient norm {v:.2f}, clipped to 1.0</title></circle>')
+    for s_, v, _ in rows[::10]:
+        o.append(f'<circle class="hit" cx="{n(X(s_))}" cy="{n(Y(v))}" r="6"><title>Step {s_}: gradient norm {v:.3f}</title></circle>')
+    for s_ in (2000, 4000, 6000, 8000):
+        o.append(f'<text class="tick" x="{n(X(s_))}" y="{H - B + 20}" text-anchor="middle">{s_}</text>')
+    o.append(f'<text class="axis-label" x="{W - R}" y="{H - 6}" text-anchor="end">step</text>')
+    last_clip = max(s_ for s_, _ in clipped)
+    desc = (f"Global gradient norm over the run, measured before clipping. It spikes above the clipping "
+            f"threshold of 1.0 {len(clipped)} times, all within the first {last_clip} steps, then settles "
+            f"between 0.2 and 0.4 for the remaining {rows[-1][0] - last_clip} steps and never triggers clipping again.")
+    (OUT / "llm-0.5b-gradnorm.svg").write_text(svg(W, H, "Gradient norm", desc, o))
+
+
+def benchmark_bars():
+    """Every model on one axis, ours beside the public baselines."""
+    b = {r["label"]: r for r in read("benchmarks.csv")}
+    acc = lambda k: float(b[k]["avg_acc"])
+    bars = [("Pythia-410M", "1.07B", acc("pythia-410m@1.07B-tok"), False),
+            ("Pythia-1B", "1.07B", acc("pythia-1b@1.07B-tok"), False),
+            ("Pythia-410M", "2.1B", acc("pythia-410m@2.1B-tok"), False),
+            ("Ours", "1.05B", acc("final@2000"), True),
+            ("Ours", "2.10B", acc("final@4000"), True),
+            ("Ours, EMA", "4.19B", acc("ema@8000"), True),
+            ("Ours", "4.19B", acc("final@8000"), True),
+            ("Pythia-410M", "300B", acc("pythia-410m@300B-tok"), False),
+            ("Qwen2.5-0.5B", "18T", acc("Qwen2.5-0.5B@18T-tok"), False),
+            ("SmolLM2-360M", "4T", acc("SmolLM2-360M@4T-tok"), False)]
+    bars.sort(key=lambda r: r[2])
+    W, L, R, T, B = 760, 46, 20, 34, 62
+    H = 330
+    n_ = len(bars)
+    slot = (W - L - R) / n_
+    bw = min(46, slot * 0.6)
+    hi = 0.62
+    Y = Scale(0, hi, H - B, T)
+    o = [f'<text class="axis-label" x="{L}" y="{T - 18}">average zero-shot accuracy, 9 tasks</text>']
+    for t in (0, 0.2, 0.4, 0.6):
+        o.append(f'<line class="grid" x1="{L}" x2="{W - R}" y1="{n(Y(t))}" y2="{n(Y(t))}"/>')
+        o.append(f'<text class="tick" x="{L - 8}" y="{n(Y(t) + 4)}" text-anchor="end">{t:.1f}</text>')
+    for i, (name, tok, v, ours) in enumerate(bars):
+        cx = L + (i + 0.5) * slot
+        y = Y(v)
+        cls = "bar" if ours else "bar bar-2"
+        o.append(f'<rect class="{cls}" x="{n(cx - bw / 2)}" y="{n(y)}" width="{n(bw)}" height="{n(H - B - y)}" rx="2">'
+                 f'<title>{name}, {tok} tokens: {a3(v)}</title></rect>')
+        o.append(f'<text class="value" x="{n(cx)}" y="{n(y - 7)}" text-anchor="middle">{a3(v)}</text>')
+        o.append(f'<text class="tick" x="{n(cx)}" y="{H - B + 16}" text-anchor="middle">{name}</text>')
+        o.append(f'<text class="note" x="{n(cx)}" y="{H - B + 30}" text-anchor="middle">{tok}</text>')
+    desc = ("Average zero-shot accuracy for every model measured, sorted low to high. Our checkpoints are the "
+            f"filled bars: {a3(acc('final@2000'))} at 1.05B tokens, {a3(acc('final@4000'))} at 2.10B and "
+            f"{a3(acc('final@8000'))} at 4.19B, with the weight-averaged version just behind at {a3(acc('ema@8000'))}. "
+            f"Pythia-410M scores {a3(acc('pythia-410m@2.1B-tok'))} at a matched 2.1B tokens and "
+            f"{a3(acc('pythia-410m@300B-tok'))} fully trained; SmolLM2-360M leads at {a3(acc('SmolLM2-360M@4T-tok'))}.")
+    (OUT / "llm-0.5b-benchmark-bars.svg").write_text(svg(W, H, "Every model compared", desc, o))
+
+
 if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)
     loss_and_lr()
@@ -452,6 +531,8 @@ if __name__ == "__main__":
     throughput()
     accuracy_vs_tokens()
     per_task()
+    grad_norm_total()
+    benchmark_bars()
     grad_heatmap()
     resid_heatmap()
     diagnostics()
