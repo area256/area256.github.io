@@ -7,6 +7,8 @@ description: A 489M-parameter model trained from scratch on 4.2B tokens for $13.
 
 We trained a 489M-parameter Llama-style model from scratch on a single rented RTX 5090. The run is finished: three phases, 4.19 billion tokens, $13.70 of GPU time. This post covers what we built, how it scores, and two things we tried that did not work.
 
+The final weights are on the Hub as [osjayaprakash/llm-0.5b-fineweb-edu](https://huggingface.co/osjayaprakash/llm-0.5b-fineweb-edu), under MIT. It loads as a plain `LlamaForCausalLM`, so nothing custom is needed to run it.
+
 ## The setup
 
 The model is a standard decoder-only transformer, written in plain PyTorch:
@@ -272,3 +274,18 @@ The run is done, and it never hit a wall we could fix with engineering. Ranked b
 **Drop ARC-Challenge and WinoGrande from the tracking suite** at this scale. Both sat at chance for the whole run.
 
 What we wouldn't bother with at this budget: architecture changes, a different optimizer, or a hyperparameter sweep. Nothing in the diagnostics ever suggested the model was the limiting factor. No instability, no dead layers, no gradient pathology, 85% of the card's peak throughput from the first step to the last. It was the data all along.
+
+## Getting the model
+
+```python
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+model = AutoModelForCausalLM.from_pretrained("osjayaprakash/llm-0.5b-fineweb-edu")
+tok = AutoTokenizer.from_pretrained("osjayaprakash/llm-0.5b-fineweb-edu")
+```
+
+It's a base model: no instruction tuning, no chat template, no alignment. It continues text and
+nothing else, and at this size it produces fluent, plausible, frequently wrong prose. Ask it about
+mitochondria and it will tell you they are the powerhouse of the cell, three times, before moving
+on. Treat it as a reference point for what a small budget buys rather than as something to build
+on. The [model card](https://huggingface.co/osjayaprakash/llm-0.5b-fineweb-edu) carries the full numbers and limitations.
